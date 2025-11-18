@@ -1,119 +1,164 @@
 "use client"
 
-import React, { useState } from "react"
+import { useState } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Copy, Check } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Edit2, TrendingUp, TrendingDown, Settings } from "lucide-react"
 
 interface User {
   name: string
-  amount: string
+  amount?: string
+  spent?: number
+  received?: number
 }
 
 interface GroupModalProps {
   groupName?: string
   users?: User[]
-  onClose?: () => void
+  expenditure?: number
+  income?: number
+  onEdit?: () => void
+  onSettings?: () => void
 }
 
 export default function GroupModal({
-  groupName = "group name",
+  groupName = "Mumbai Hacks",
   users = [
-    { name: "user 1", amount: "amount" },
-    { name: "user 1", amount: "amount" },
-    { name: "user 1", amount: "amount" },
+    { name: "Aman Singh", spent: 2000, received: 500 },
+    { name: "Priya Patel", spent: 1000, received: 800 },
+    { name: "Rahul Verma",spent:200, received:500 },
   ],
-  onClose,
+  expenditure = 15500,
+  income = 22000,
+  onEdit = () => console.log("Edit clicked"),
+  onSettings = () => console.log("Settings clicked"),
 }: GroupModalProps) {
   const [activeTab, setActiveTab] = useState("transactions")
-  const [inviteLink, setInviteLink] = useState("https://invite.link/abc123")
-  const [copied, setCopied] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
 
-  const handleCopyInvite = () => {
-    navigator.clipboard.writeText(inviteLink)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
+  // seed random values for any users missing spent/received (kept per render)
+  const seededUsers = users.map((u) => {
+    if (typeof u.spent === "number" || typeof u.received === "number") return u
+    const spent = Math.floor(Math.random() * 2000) + 500
+    const received = Math.floor(Math.random() * 2000) + 200
+    return { ...u, spent, received }
+  })
+
+  const filteredUsers = seededUsers.filter((user) =>
+    user.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  const totalExpenditure = seededUsers.reduce((s, u) => s + (u.spent || 0), 0)
+  const totalIncome = seededUsers.reduce((s, u) => s + (u.received || 0), 0)
 
   return (
     <div className="fixed inset-0 backdrop-blur-md bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="w-full max-w-4xl bg-slate-800 rounded-lg border border-muted/40 shadow-lg overflow-hidden">
-        <div className="flex h-96">
+      <div className="w-full max-w-6xl bg-slate-900 rounded-xl border border-slate-700 shadow-2xl overflow-hidden">
+        <div className="flex h-[600px]">
           {/* Left Section - 2/3 width */}
-          <div className="w-2/3 p-6 border-r border-muted/40 flex flex-col">
-            {/* Header */}
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-white">{groupName}</h2>
-              <span className="text-sm text-muted-foreground">settings btn</span>
+          <div className="w-2/3 p-7 border-r border-slate-700 flex flex-col gap-6">
+            {/* Header with Edit Button */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-white">{groupName}</h2>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-800"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </Button>
+                  {/* on clicking this edit button the group name span shall become the input text itself with the tick box then save it  by clicking the tick box and it will exit that state*/}
+                </DropdownMenuTrigger>
+                {/* <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
+                  <DropdownMenuItem onClick={onEdit} className="text-slate-200 focus:bg-slate-700">
+                    Edit Group
+                  </DropdownMenuItem>
+                  <DropdownMenuItem className="text-slate-200 focus:bg-slate-700">
+                    View Details
+                  </DropdownMenuItem>
+                </DropdownMenuContent> */}
+              </DropdownMenu>
             </div>
 
             {/* Users List */}
-            <div className="flex-1 overflow-y-auto mb-6 space-y-3">
-              {users.map((user, idx) => (
-                <div key={idx} className="flex justify-between items-center py-2 px-2">
-                  <span className="text-white text-sm">{user.name}</span>
-                  <span className="text-muted-foreground text-sm">{user.amount}</span>
+            <div className="flex-1 overflow-hidden flex flex-col gap-3">
+              <h3 className="text-sm font-semibold text-slate-300">Members</h3>
+              <ScrollArea className="flex-1">
+                <div className="space-y-2 pr-4">
+                  {filteredUsers.map((user, idx) => (
+                    <div
+                      key={idx}
+                      className="flex items-center justify-between p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-white">{user.name}</span>
+                        <span className="text-xs text-slate-400">Spent: <span className="text-red-400 font-semibold">₹{(user.spent||0).toLocaleString()}</span> • Received: <span className="text-emerald-400 font-semibold">₹{(user.received||0).toLocaleString()}</span></span>
+                      </div>
+                      <div className="text-sm font-semibold text-slate-200">Balance: <span className="ml-2 text-sm font-bold text-slate-200">₹{((user.received||0)-(user.spent||0)).toLocaleString()}</span></div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </ScrollArea>
             </div>
 
-            {/* Input Query */}
+            {/* Search Input */}
             <div>
               <Input
-                placeholder="input query of users"
-                className="w-full bg-slate-700 border-muted/30 text-white placeholder:text-muted-foreground rounded-full py-2 px-4 text-sm focus:ring-1 focus:ring-muted/50"
+                placeholder="Enter your situation..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-slate-800 border-slate-600 text-white placeholder:text-slate-500 rounded-lg focus-visible:ring-slate-600 focus-visible:border-slate-500"
               />
             </div>
           </div>
 
           {/* Right Section - 1/3 width */}
-          <div className="w-1/3 p-6 flex flex-col bg-slate-700/50">
+          <div className="w-1/3 p-7 flex flex-col gap-6 bg-slate-800/50">
             {/* Tabs */}
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col h-full">
-              <TabsList className="grid w-full grid-cols-2 bg-transparent p-0 mb-4 border-b border-muted/20">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-1">
+              <TabsList className="grid w-full grid-cols-2 bg-slate-800 p-1 rounded-lg">
                 <TabsTrigger
                   value="transactions"
-                  className={`rounded-none border-b-2 font-medium transition-colors ${
-                    activeTab === "transactions"
-                      ? "border-white text-white bg-transparent"
-                      : "border-transparent text-muted-foreground bg-transparent hover:text-white"
-                  }`}
+                  className="rounded-md text-xs font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-400"
                 >
-                  transactions
+                  Transactions
                 </TabsTrigger>
                 <TabsTrigger
                   value="users"
-                  className={`rounded-none border-b-2 font-medium transition-colors ${
-                    activeTab === "users"
-                      ? "border-white text-white bg-transparent"
-                      : "border-transparent text-muted-foreground bg-transparent hover:text-white"
-                  }`}
+                  className="rounded-md text-xs font-medium data-[state=active]:bg-slate-700 data-[state=active]:text-white text-slate-400"
                 >
-                  users list
+                  Users
                 </TabsTrigger>
               </TabsList>
 
+              <Separator className="my-4 bg-slate-700" />
+
               {/* Tab Content */}
               <TabsContent value="transactions" className="flex-1 mt-0">
-                <ScrollArea className="h-32 pr-4">
-                  <div className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                    {`in transaction the
-approval request
-will be shown
-user list is self
-explanatory`}
+                <ScrollArea className="h-full">
+                  <div className="text-xs leading-relaxed text-slate-300 pr-4">
+                    <p className="font-semibold text-slate-200 mb-2">Approval Requests</p>
+                    <p>Pending transactions and approval requests will appear here.</p>
                   </div>
                 </ScrollArea>
               </TabsContent>
 
               <TabsContent value="users" className="flex-1 mt-0">
-                <ScrollArea className="h-32 pr-4">
-                  <div className="text-sm text-muted-foreground">
-                    {users.map((user, idx) => (
-                      <div key={idx} className="py-1">
+                <ScrollArea className="h-full">
+                  <div className="text-xs space-y-1 pr-4">
+                    {filteredUsers.map((user, idx) => (
+                      <div key={idx} className="text-slate-300 py-1">
                         {user.name}
                       </div>
                     ))}
@@ -122,41 +167,39 @@ explanatory`}
               </TabsContent>
             </Tabs>
 
-            {/* Separator */}
-            <Separator className="my-4 bg-muted/20" />
+            <Separator className="bg-slate-700" />
 
-            {/* Lower Section */}
-            <div className="space-y-4">
-              {/* Invite Link */}
-              <div>
-                <label className="text-xs text-muted-foreground block mb-2">invite link</label>
-                <div className="flex gap-2">
-                  <Input
-                    value={inviteLink}
-                    readOnly
-                    className="flex-1 bg-slate-600 border-muted/30 text-white text-sm py-1 px-3 rounded"
-                  />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={handleCopyInvite}
-                    className="px-3 text-muted-foreground hover:text-white"
-                  >
-                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  </Button>
+            {/* Money Stats - Split into two */}
+            <div className="space-y-3">
+              {/* Expenditure */}
+              <div className="p-4 rounded-lg bg-slate-800/80 border border-slate-700">
+                <div className="flex items-center gap-2 mb-1">
+                  <TrendingDown className="h-4 w-4 text-red-400" />
+                  <span className="text-xs font-medium text-slate-400">Amount of Money Spent</span>
                 </div>
+                <p className="text-lg font-bold text-red-400">₹{totalExpenditure.toLocaleString()}</p>
+                <p className="text-xs text-slate-500 mt-1">Expenditure</p>
               </div>
 
-              {/* Password Optional */}
-              <div>
-                <label className="text-xs text-muted-foreground block mb-2">password (optional)</label>
-                <Input
-                  type="password"
-                  placeholder="Enter password"
-                  className="w-full bg-slate-600 border-muted/30 text-white placeholder:text-muted-foreground text-sm py-1 px-3 rounded focus:ring-1 focus:ring-muted/50"
-                />
+              {/* Income */}
+              <div className="p-4 rounded-lg bg-slate-800/80 border border-slate-700">
+                <div className="flex items-center gap-2 mb-1">
+                  <TrendingUp className="h-4 w-4 text-emerald-400" />
+                  <span className="text-xs font-medium text-slate-400">Amount of Money Received</span>
+                </div>
+                <p className="text-lg font-bold text-emerald-400">₹{totalIncome.toLocaleString()}</p>
+                <p className="text-xs text-slate-500 mt-1">Income</p>
               </div>
             </div>
+
+            {/* Settings Button */}
+            <Button
+              onClick={onSettings}
+              className="w-full flex items-center justify-center gap-2 bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 rounded-lg py-2 transition-colors"
+            >
+              <Settings className="h-4 w-4" />
+              <span className="text-sm font-medium">Settings</span>
+            </Button>
           </div>
         </div>
       </div>
