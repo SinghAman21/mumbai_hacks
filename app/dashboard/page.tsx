@@ -13,7 +13,7 @@ export default function DashBoard() {
   const [searchQuery, setSearchQuery] = React.useState("");
 
   // Demo groups data
-  const demoGroups = [
+  const [groups, setGroups] = React.useState([
     {
       id: "1",
       name: "Weekend Trip Squad",
@@ -54,10 +54,14 @@ export default function DashBoard() {
       memberCount: 5,
       lastActivity: "5 hours ago",
     },
-  ];
+  ]);
+
+  const updateGroupName = (id: string, newName: string) => {
+    setGroups(groups.map((g) => (g.id === id ? { ...g, name: newName } : g)));
+  };
 
   // Filter groups based on search query
-  const filteredGroups = demoGroups.filter((group) =>
+  const filteredGroups = groups.filter((group) =>
     group.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -83,7 +87,11 @@ export default function DashBoard() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredGroups.map((group) => (
-                <GroupCard key={group.id} {...group} />
+                <GroupCard
+                  key={group.id}
+                  {...group}
+                  onNameChange={(newName) => updateGroupName(group.id, newName)}
+                />
               ))}
             </div>
           </div>
