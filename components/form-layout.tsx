@@ -149,7 +149,7 @@ export default function WorkspaceForm() {
             </h4>
             <RadioGroup
               value={selected.name}
-              onValueChange={(value) =>
+              onValueChange={(value: string) =>
                 setSelected(
                   plans.find((plan) => plan.name === value) || plans[0]
                 )
