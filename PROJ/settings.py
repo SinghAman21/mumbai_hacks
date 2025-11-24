@@ -1,6 +1,3 @@
-
-
-
 """
 Django settings for PROJ project.
 
@@ -81,20 +78,12 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-pw = os.getenv("SUPABASE_PASSWORD")
-host = os.getenv("SUPABASE_HOST")
-user =  os.getenv("SUPABASE_USERNAME")
+pw = os.getenv("PASSWORD")
+host = os.getenv("HOST")
+user =  os.getenv("USER")
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'testsupa',
-        'USER': 'testsupa',
-        'PASSWORD': 'testsupa',
-        'HOST': '127.0.0.1',
-        'PORT': '5432'
-    },
-    'remote':{
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'postgres',
         'USER': user,

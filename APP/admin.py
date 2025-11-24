@@ -1,6 +1,8 @@
 from django.contrib import admin
 from APP.models import *
 
-# Register your models here.
-admin.site.register(Local)
-admin.site.register(Remote)
+admin.site.register(User)
+admin.site.register(Group)
+admin.site.register(GroupMember)
+admin.site.register(Expense)
+admin.site.register(ExpenseSplit)
