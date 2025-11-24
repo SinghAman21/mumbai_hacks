@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useId, useRef, useState } from "react";
+import React, { useId } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   IconUsers,
@@ -9,10 +9,9 @@ import {
   IconCurrencyDollar,
   IconEdit,
 } from "@tabler/icons-react";
-import { motion, AnimatePresence } from "motion/react";
-import { useOutsideClick } from "@/hooks/use-outside-click";
+import { motion } from "motion/react";
 import { useEditGroupName } from "@/hooks/use-edit-group-name";
-import { GroupExpandedView } from "./GroupExpandedView";
+import Link from "next/link";
 
 interface GroupCardProps {
   id: string;
@@ -37,60 +36,15 @@ export function GroupCard({
   lastActivity,
   onNameChange,
 }: GroupCardProps) {
-  const [active, setActive] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  const [activeTab, setActiveTab] = useState<"transactions" | "members">(
-    "transactions"
-  );
   const id_unique = useId();
 
   const { isEditing, editedName, setEditedName, startEditing, save, cancel } =
     useEditGroupName(name, onNameChange);
 
-  useEffect(() => {
-    function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setActive(false);
-      }
-    }
-
-    if (active) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "auto";
-    }
-
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [active]);
-
-  useOutsideClick(ref, () => setActive(false));
-
   return (
-    <>
-      <AnimatePresence>
-        {active && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm h-full w-full z-10"
-          />
-        )}
-      </AnimatePresence>
-      <GroupExpandedView
-        id={id}
-        name={name}
-        memberCount={memberCount}
-        lastActivity={lastActivity}
-        active={active}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        onClose={() => setActive(false)}
-      />
+    <Link href={`/dashboard/group/${id}`} className="block w-full">
       <motion.div
         layoutId={`card-${name}-${id_unique}`}
-        onClick={() => setActive(true)}
         className="w-full"
       >
         <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer border-l-4 border-l-primary">
@@ -106,6 +60,7 @@ export function GroupCard({
                       if (e.key === "Enter") save();
                       if (e.key === "Escape") cancel();
                     }}
+                    onClick={(e) => e.preventDefault()}
                     className="bg-transparent border-none outline-none text-lg font-semibold text-card-foreground flex-1"
                     autoFocus
                   />
@@ -115,6 +70,7 @@ export function GroupCard({
               </CardTitle>
               <button
                 onClick={(e) => {
+                  e.preventDefault();
                   e.stopPropagation();
                   if (isEditing) {
                     save();
@@ -161,9 +117,8 @@ export function GroupCard({
                   Net Amount
                 </div>
                 <div
-                  className={`text-xl font-bold ${
-                    netAmount >= 0 ? "text-chart-2" : "text-destructive"
-                  }`}
+                  className={`text-xl font-bold ${netAmount >= 0 ? "text-chart-2" : "text-destructive"
+                    }`}
                 >
                   {netAmount >= 0 ? "+" : ""}${Math.abs(netAmount).toFixed(2)}
                 </div>
@@ -176,6 +131,6 @@ export function GroupCard({
           </CardContent>
         </Card>
       </motion.div>
-    </>
+    </Link>
   );
 }

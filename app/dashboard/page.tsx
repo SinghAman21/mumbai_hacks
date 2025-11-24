@@ -4,6 +4,7 @@ import React from "react";
 import DashHeader from "@/components/dashboard/DashHeader";
 import { EmptyGroupsState } from "@/components/group/EmptyGroupsState";
 import { GroupCard } from "@/components/group/GroupCard";
+import { GROUPS_DATA } from "./data";
 
 export default function DashBoard() {
   // Mock data - replace with actual state management
@@ -13,48 +14,7 @@ export default function DashBoard() {
   const [searchQuery, setSearchQuery] = React.useState("");
 
   // Demo groups data
-  const [groups, setGroups] = React.useState([
-    {
-      id: "1",
-      name: "Weekend Trip Squad",
-      totalTransactions: 12,
-      approvedTransactions: 10,
-      pendingTransactions: 2,
-      netAmount: 245.5,
-      memberCount: 4,
-      lastActivity: "2 hours ago",
-    },
-    {
-      id: "2",
-      name: "Roommates Expenses",
-      totalTransactions: 28,
-      approvedTransactions: 25,
-      pendingTransactions: 3,
-      netAmount: -89.3,
-      memberCount: 3,
-      lastActivity: "1 day ago",
-    },
-    {
-      id: "3",
-      name: "Birthday Party Group",
-      totalTransactions: 8,
-      approvedTransactions: 8,
-      pendingTransactions: 0,
-      netAmount: 156.75,
-      memberCount: 6,
-      lastActivity: "3 days ago",
-    },
-    {
-      id: "4",
-      name: "Office Lunch Bunch",
-      totalTransactions: 15,
-      approvedTransactions: 12,
-      pendingTransactions: 3,
-      netAmount: 67.2,
-      memberCount: 5,
-      lastActivity: "5 hours ago",
-    },
-  ]);
+  const [groups, setGroups] = React.useState(GROUPS_DATA);
 
   const updateGroupName = (id: string, newName: string) => {
     setGroups(groups.map((g) => (g.id === id ? { ...g, name: newName } : g)));

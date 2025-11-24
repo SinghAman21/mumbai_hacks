@@ -44,7 +44,7 @@ export function GroupExpandedView({
     <AnimatePresence>
       {active ? (
         <div
-          className="fixed inset-0 grid place-items-center z-100 p-4 md:p-6"
+          className="fixed inset-0 grid place-items-center z-50 p-4 md:p-6 bg-black/40 backdrop-blur-sm"
           onClick={onClose}
         >
           <motion.div
