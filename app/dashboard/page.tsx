@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import DashHeader from "@/components/dashboard/DashHeader";
 import { EmptyGroupsState } from "@/components/group/EmptyGroupsState";
 import { GroupCard } from "@/components/group/GroupCard";
@@ -14,11 +14,7 @@ export default function DashBoard() {
   const [searchQuery, setSearchQuery] = React.useState("");
 
   // Demo groups data
-  const [groups, setGroups] = React.useState(GROUPS_DATA);
-
-  const updateGroupName = (id: string, newName: string) => {
-    setGroups(groups.map((g) => (g.id === id ? { ...g, name: newName } : g)));
-  };
+  const [groups, setGroups] = useState(GROUPS_DATA);
 
   // Filter groups based on search query
   const filteredGroups = groups.filter((group) =>
@@ -47,11 +43,7 @@ export default function DashBoard() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredGroups.map((group) => (
-                <GroupCard
-                  key={group.id}
-                  {...group}
-                  onNameChange={(newName) => updateGroupName(group.id, newName)}
-                />
+                <GroupCard key={group.id} {...group} />
               ))}
             </div>
           </div>
