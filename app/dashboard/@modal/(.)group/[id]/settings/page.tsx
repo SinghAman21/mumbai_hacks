@@ -4,19 +4,17 @@ import React, { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { GroupExpandedView } from "@/components/group/GroupExpandedView";
 import { GROUPS_DATA } from "@/app/dashboard/data";
-// Mock data - duplicated from dashboard/page.tsx for now
 
-
-export default function InterceptedGroupPage() {
+export default function GroupSettingsPage() {
     const router = useRouter();
     const params = useParams();
     const id = params.id as string;
     const [activeTab, setActiveTab] = useState<"transactions" | "members">("transactions");
-    // const [groups, setGroups] = React.useState(GROUPS_DATA);
+
     const group = GROUPS_DATA.find((g) => g.id === id);
 
     if (!group) {
-        return null; // Or some error state
+        return null;
     }
 
     return (
@@ -29,6 +27,7 @@ export default function InterceptedGroupPage() {
             activeTab={activeTab}
             setActiveTab={setActiveTab}
             onClose={() => router.back()}
+            view="settings"
         />
     );
 }

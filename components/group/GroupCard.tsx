@@ -7,10 +7,8 @@ import {
   IconCheck,
   IconClock,
   IconCurrencyDollar,
-  IconEdit,
 } from "@tabler/icons-react";
 import { motion } from "motion/react";
-import { useEditGroupName } from "@/hooks/use-edit-group-name";
 import Link from "next/link";
 
 interface GroupCardProps {
@@ -22,7 +20,6 @@ interface GroupCardProps {
   netAmount: number;
   memberCount: number;
   lastActivity: string;
-  onNameChange: (newName: string) => void;
 }
 
 export function GroupCard({
@@ -34,58 +31,19 @@ export function GroupCard({
   netAmount,
   memberCount,
   lastActivity,
-  onNameChange,
 }: GroupCardProps) {
   const id_unique = useId();
 
-  const { isEditing, editedName, setEditedName, startEditing, save, cancel } =
-    useEditGroupName(name, onNameChange);
-
   return (
     <Link href={`/dashboard/group/${id}`} className="block w-full">
-      <motion.div
-        layoutId={`card-${name}-${id_unique}`}
-        className="w-full"
-      >
+      <motion.div layoutId={`card-${name}-${id_unique}`} className="w-full">
         <Card className="hover:shadow-md transition-shadow duration-200 cursor-pointer border-l-4 border-l-primary">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg font-semibold text-card-foreground flex items-center gap-2 flex-1">
                 <IconUsers className="w-5 h-5 text-primary" />
-                {isEditing ? (
-                  <input
-                    value={editedName}
-                    onChange={(e) => setEditedName(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") save();
-                      if (e.key === "Escape") cancel();
-                    }}
-                    onClick={(e) => e.preventDefault()}
-                    className="bg-transparent border-none outline-none text-lg font-semibold text-card-foreground flex-1"
-                    autoFocus
-                  />
-                ) : (
-                  <span>{name}</span>
-                )}
+                <span>{name}</span>
               </CardTitle>
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  if (isEditing) {
-                    save();
-                  } else {
-                    startEditing();
-                  }
-                }}
-                className="ml-2 p-1 rounded hover:bg-muted"
-              >
-                {isEditing ? (
-                  <IconCheck className="w-4 h-4 text-primary" />
-                ) : (
-                  <IconEdit className="w-4 h-4 text-muted-foreground hover:text-primary" />
-                )}
-              </button>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -117,8 +75,9 @@ export function GroupCard({
                   Net Amount
                 </div>
                 <div
-                  className={`text-xl font-bold ${netAmount >= 0 ? "text-chart-2" : "text-destructive"
-                    }`}
+                  className={`text-xl font-bold ${
+                    netAmount >= 0 ? "text-chart-2" : "text-destructive"
+                  }`}
                 >
                   {netAmount >= 0 ? "+" : ""}${Math.abs(netAmount).toFixed(2)}
                 </div>

@@ -203,11 +203,7 @@ export default function DashBoard() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredGroups.map((group) => (
-                <GroupCard
-                  key={group.id}
-                  {...group}
-                  onNameChange={(newName) => updateGroupName(group.id, newName)}
-                />
+                <GroupCard key={group.id} {...group} />
               ))}
             </div>
           </div>
