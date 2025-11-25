@@ -1,5 +1,5 @@
 from django.db.models import Sum
-from django.utils import timezone  # <--- NEW IMPORT
+from django.utils import timezone
 from .models import Group, Expense, ExpenseSplit
 import google.generativeai as genai
 import json
@@ -7,11 +7,7 @@ import os
 
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
-
-# ... (parse_expense_with_ai function stays the same) ...
 def parse_expense_with_ai(text_input, group_id, current_user_name):
-    # (Keep your existing code for this function)
-    # Just copying the header so you know where it goes.
     try:
         group = Group.objects.get(id=group_id)
         member_names = ", ".join([u.name for u in group.members.all()])
@@ -26,8 +22,6 @@ def parse_expense_with_ai(text_input, group_id, current_user_name):
     except:
         return None
 
-
-# --- THE UPDATED MONTHLY LOGIC ---
 def get_unified_fairness_analysis(group_id):
     try:
         group = Group.objects.get(id=group_id)
@@ -58,7 +52,6 @@ def get_unified_fairness_analysis(group_id):
         fair_share = 0
 
     # 2. SET DYNAMIC LIMITS
-    # Use the Admin's setting from the DB (e.g., 2000)
     MIN_FLOOR = float(group.min_floor)
 
     # Soft Limit: Max of Floor OR 50% of monthly share
@@ -67,17 +60,12 @@ def get_unified_fairness_analysis(group_id):
     # Hard Limit: Max of (2x Floor) OR (100% of monthly share)
     hard_limit = max(MIN_FLOOR * 2, fair_share * 1.0)
 
-    # 3. CALCULATE BALANCES (Cumulative is usually better, but let's stick to monthly per your request)
-    # Note: Usually debt carries over. If you want "Monthly Reset", we only sum this month's splits.
-    # If you want "Lifetime Debt" but "Monthly Thresholds", remove the filter below.
-    # For now, I will implement STRICT MONTHLY RESET (New month = Clean slate).
-
+    # 3. CALCULATE BALANCES
     for user in members:
         # Paid THIS MONTH
         paid = monthly_expenses.filter(payer=user).aggregate(Sum('amount'))['amount__sum'] or 0
 
         # Consumed THIS MONTH
-        # (Need to filter splits by the expense's date)
         consumed = ExpenseSplit.objects.filter(
             expense__group=group,
             user=user,
@@ -85,7 +73,11 @@ def get_unified_fairness_analysis(group_id):
             expense__created_at__month=now.month
         ).aggregate(Sum('owed_amount'))['owed_amount__sum'] or 0
 
-        net_balance = paid - consumed
+        if member_count == 1:
+            net_balance = paid
+        else:
+            net_balance = paid - consumed
+            
         raw_balances[user] = net_balance
 
     # 4. GENERATE ALERTS
@@ -122,13 +114,10 @@ def create_expense_from_parsed_data(group_id, parsed_data):
     group = Group.objects.get(id=group_id)
     members = group.members.all()
     
-    # Helper to find user by name
     def find_user(name):
-        # Simple case-insensitive match
         for m in members:
             if m.name.lower() == name.lower():
                 return m
-        # Fallback: try partial match
         for m in members:
             if name.lower() in m.name.lower():
                 return m
@@ -136,10 +125,6 @@ def create_expense_from_parsed_data(group_id, parsed_data):
 
     payer = find_user(parsed_data['payer_name'])
     if not payer:
-        # Fallback: if payer not found, maybe use the first member or raise error
-        # For robustness, let's try to find a user that matches the current_user_name if passed, 
-        # but here we only have parsed_data.
-        # Let's raise an error for now.
         raise ValueError(f"Payer '{parsed_data['payer_name']}' not found in group")
 
     expense = Expense.objects.create(
@@ -150,7 +135,20 @@ def create_expense_from_parsed_data(group_id, parsed_data):
         category="General" 
     )
 
-    for split in parsed_data['splits']:
+    splits_data = parsed_data.get('splits', [])
+    
+    if not splits_data:
+        # Default to equal splits if no splits provided
+        count = members.count()
+        if count > 0:
+            amount_per_person = parsed_data['amount'] / count
+            for member in members:
+                splits_data.append({
+                    'user_name': member.name,
+                    'amount': amount_per_person
+                })
+
+    for split in splits_data:
         user = find_user(split['user_name'])
         if user:
             ExpenseSplit.objects.create(
