@@ -2,15 +2,15 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { SettingsSidebar } from "./sections/SettingsSidebar";
+import { SettingsSidebar } from "./sections/settings-sidebar";
 import {
   GeneralSettings,
   InviteSettings,
   ActivitySettings,
   ExportSettings,
-} from "./sections/SettingsTabs";
-import { DangerZone } from "./sections/DangerZone";
-import { ConfirmationDialog } from "./sections/ConfirmationDialog";
+} from "./sections/settings-tabs";
+import { DangerZone } from "./sections/danger-zone";
+import { ConfirmationDialog } from "./sections/confirmation-dialog";
 
 interface GroupSettingsProps {
   id?: string;

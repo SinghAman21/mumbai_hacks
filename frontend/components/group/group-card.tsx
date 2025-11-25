@@ -6,8 +6,9 @@ import {
   IconUsers,
   IconCheck,
   IconClock,
-  IconCurrencyDollar,
+  IconCurrencyRupee,
 } from "@tabler/icons-react";
+import { formatLastActivity, formatIndianRupee } from "@/lib/utils";
 import { motion } from "motion/react";
 import Link from "next/link";
 
@@ -71,7 +72,7 @@ export function GroupCard({
             <div className="pt-2 border-t border-border">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <IconCurrencyDollar className="w-4 h-4 text-primary" />
+                  <IconCurrencyRupee className="w-4 h-4 text-primary" />
                   Net Amount
                 </div>
                 <div
@@ -79,13 +80,14 @@ export function GroupCard({
                     netAmount >= 0 ? "text-chart-2" : "text-destructive"
                   }`}
                 >
-                  {netAmount >= 0 ? "+" : ""}${Math.abs(netAmount).toFixed(2)}
+                  {netAmount >= 0 ? "+" : ""}
+                  {formatIndianRupee(Math.abs(netAmount))}
                 </div>
               </div>
             </div>
 
             <div className="text-xs text-muted-foreground pt-1">
-              Last activity: {lastActivity}
+              Last activity: {formatLastActivity(lastActivity)}
             </div>
           </CardContent>
         </Card>

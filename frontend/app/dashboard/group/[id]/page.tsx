@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { GroupExpandedView } from "@/components/group/GroupExpandedView";
+import { GroupExpandedView } from "@/components/group/group-expanded-view";
 import { GROUPS_DATA } from "../../data";
 
 export default function GroupPage() {

@@ -1,4 +1,5 @@
-import { AppSidebar } from "@/components/dashboard/appsidebar";
+import { AppSidebar } from "@/components/dashboard/app-sidebar";
+
 export default function DashboardLayout({
   children,
   modal,

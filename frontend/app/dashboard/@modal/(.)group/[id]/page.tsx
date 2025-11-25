@@ -1,34 +1,49 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { GroupExpandedView } from "@/components/group/GroupExpandedView";
-import { GROUPS_DATA } from "@/app/dashboard/data";
-// Mock data - duplicated from dashboard/page.tsx for now
-
+import { GroupExpandedView } from "@/components/group/group-expanded-view";
+import { fetchGroup, Group } from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function InterceptedGroupPage() {
-    const router = useRouter();
-    const params = useParams();
-    const id = params.id as string;
-    const [activeTab, setActiveTab] = useState<"transactions" | "members">("transactions");
-    // const [groups, setGroups] = React.useState(GROUPS_DATA);
-    const group = GROUPS_DATA.find((g) => g.id === id);
+  const router = useRouter();
+  const params = useParams();
+  const id = parseInt(params.id as string, 10);
 
-    if (!group) {
-        return null; // Or some error state
-    }
+  const [activeTab, setActiveTab] = useState<"transactions" | "members">(
+    "transactions"
+  );
+  const [group, setGroup] = useState<Group | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-    return (
-        <GroupExpandedView
-            id={group.id}
-            name={group.name}
-            memberCount={group.memberCount}
-            lastActivity={group.lastActivity}
-            active={true}
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
-            onClose={() => router.back()}
-        />
-    );
+  useEffect(() => {
+    if (!id) return;
+
+    (async () => {
+      try {
+        const data = await fetchGroup(id);
+        setGroup(data);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load group");
+      }
+    })();
+  }, [id]);
+
+  if (error || !group) return <div>{error ?? "Group not found"}</div>;
+
+  return (
+    <GroupExpandedView
+      id={group.id.toString()}
+      name={group.name}
+      memberCount={group.memberCount}
+      lastActivity={group.lastActivity}
+      active={true}
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
+      onClose={() => router.back()}
+      animateInitial={false}
+    />
+  );
 }

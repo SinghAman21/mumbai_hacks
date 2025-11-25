@@ -1,8 +1,9 @@
+
 import React from "react";
-import { ActionSearchBar } from "./ActionSearchBar";
+import { ActionSearchBar } from "./action-search-bar";
 import { ModeToggle } from "../modetoggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import NotificationPopover from "./NotificationPopover";
+import NotificationPopover from "./notification-popover";
 
 interface DashHeaderProps {
   onSearch?: (query: string) => void;
