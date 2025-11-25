@@ -2,17 +2,6 @@
   "name": "mumbai_hacks",
   "version": "0.1.0",
   "private": true,
-  "keywords": [
-    "expense-tracker",
-    "split-bills",
-    "group-expenses",
-    "nextjs",
-    "django",
-    "hackathon",
-    "monorepo"
-  ],
-  "author": "SinghAman21",
-  "license": "MIT",
   "scripts": {
     "dev": "next dev",
     "start": "next start",

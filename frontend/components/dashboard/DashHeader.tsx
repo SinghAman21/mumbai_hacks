@@ -2,7 +2,6 @@ import React from "react";
 import { ActionSearchBar } from "./ActionSearchBar";
 import { ModeToggle } from "../modetoggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import NotificationPopover from "./NotificationPopover";
 
 interface DashHeaderProps {
   onSearch?: (query: string) => void;
@@ -16,18 +15,17 @@ function DashHeader({ onSearch }: DashHeaderProps) {
           <ActionSearchBar onSearch={onSearch} />
         </div>
         <div className="flex items-center gap-2">
-          {/* Notification Popover */}
-          <NotificationPopover />
-
           <ModeToggle />
-
           <Avatar>
             <AvatarImage src="/avatar.png" alt="User" />
             <AvatarFallback>U</AvatarFallback>
           </Avatar>
         </div>
       </div>
-      
+      {/* <div className="flex  items-center gap-4">
+                <ModeToggle />
+                User pfp
+            </div> */}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, {useEffect, useState} from "react";
 import DashHeader from "@/components/dashboard/DashHeader";
 import { EmptyGroupsState } from "@/components/group/EmptyGroupsState";
 import { GroupCard } from "@/components/group/GroupCard";
@@ -22,12 +22,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { GROUPS_DATA } from "./data";
+import { createGroup, fetchGroups, Group } from "@/lib/api";
 
 export default function DashBoard() {
-  // Mock data - replace with actual state management
-  const hasGroups = true; // Set to true when user has groups
-
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -37,38 +37,46 @@ export default function DashBoard() {
   // Form state
   const [newGroupName, setNewGroupName] = useState("");
   const [newGroupDescription, setNewGroupDescription] = useState("");
-  const [newGroupDuration, setNewGroupDuration] = useState("");
+  const [newGroupType, setNewGroupType] = useState("SHORT");
   const [newGroupMemberLimit, setNewGroupMemberLimit] = useState("");
 
-  // Demo groups data
-  const [groups, setGroups] = useState(GROUPS_DATA);
+  useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        const data = await fetchGroups();
+        setGroups(data);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load groups");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
-  const updateGroupName = (id: string, newName: string) => {
-    setGroups(groups.map((g) => (g.id === id ? { ...g, name: newName } : g)));
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
+
+  const handleCreateGroup = async () => {
+    if (!newGroupName) return; // Basic validation
+    try {
+      const newGroup = await createGroup({
+        name: newGroupName,
+        type: newGroupType,
+      });
+      setGroups((prevGroups) => [...prevGroups, newGroup]); // Add new group to the list
+      // Reset form and close dialog
+      setNewGroupName("");
+      setNewGroupDescription("");
+      setNewGroupType("SHORT");
+      setIsDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to create group:", error);
+      // Optionally, show an error message to the user
+    }
   };
-
-  const createGroup = (name: string, description: string, duration: string) => {
-    const newGroup = {
-      id: Date.now().toString(),
-      name,
-      description,
-      duration,
-      totalTransactions: 0,
-      approvedTransactions: 0,
-      pendingTransactions: 0,
-      netAmount: 0,
-      memberCount: 1,
-      lastActivity: "Just now",
-    };
-    setGroups([...groups, newGroup]);
-    // Reset form
-    setNewGroupName("");
-    setNewGroupDescription("");
-    setNewGroupDuration("");
-    setIsDialogOpen(false);
-  };
-
-  // Filter groups based on search query
+  // Filter groups based on a search query
   const filteredGroups = groups.filter((group) =>
     group.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -76,8 +84,8 @@ export default function DashBoard() {
   return (
     <div className="flex flex-col h-full">
       <DashHeader onSearch={setSearchQuery} />
-      <main className="flex-1 overflow-auto p-6">
-        {!hasGroups ? (
+      <main className="flex-1 overflow-auto p-6"> 
+        {groups.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <EmptyGroupsState />
           </div>
@@ -131,23 +139,17 @@ export default function DashBoard() {
                           <label className="block text-sm font-medium mb-1">
                             Duration
                           </label>
-                          <Select
-                            value={newGroupDuration}
-                            onValueChange={setNewGroupDuration}
-                          >
+                          <Select value={newGroupType} onValueChange={setNewGroupType}>
                             <SelectTrigger>
                               <SelectValue placeholder="Select duration" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="Medium Term">
-                                Medium Term
+                              <SelectItem value="SHORT">
+                                Short Term
                               </SelectItem>
-                              <SelectItem value="Ongoing">Ongoing</SelectItem>
-                              <SelectItem value="Permanent">
-                                Permanent
+                              <SelectItem value="LONG">
+                                Long Term
                               </SelectItem>
-                              <SelectItem value="One-Time">One-Time</SelectItem>
-                              <SelectItem value="Custom">Custom</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -184,13 +186,7 @@ export default function DashBoard() {
                         </div>
                       </div>
                       <Button
-                        onClick={() => {
-                          setNewGroupName("");
-                          setNewGroupDescription("");
-                          setNewGroupDuration("");
-                          setNewGroupMemberLimit("");
-                          setIsDialogOpen(false);
-                        }}
+                        onClick={handleCreateGroup}
                         className="w-full"
                       >
                         Create Group
@@ -203,7 +199,7 @@ export default function DashBoard() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredGroups.map((group) => (
-                <GroupCard key={group.id} {...group} />
+                <GroupCard key={group.id} {...group} id={group.id.toString()} />
               ))}
             </div>
           </div>
