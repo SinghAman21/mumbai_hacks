@@ -17,6 +17,8 @@ import {
   PromptInputActions,
   PromptInputAction,
 } from "@/components/ui/prompt-input";
+import { formatIndianRupee } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface GroupDetailsViewProps {
   id: string;
@@ -33,15 +35,20 @@ export function GroupDetailsView({
   const [members, setMembers] = React.useState<any[]>([]);
   const [promptValue, setPromptValue] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
+  const [membersLoading, setMembersLoading] = React.useState(true);
+  const [expensesLoading, setExpensesLoading] = React.useState(true);
 
   React.useEffect(() => {
     // Fetch expenses
+    setExpensesLoading(true);
     fetch(`http://127.0.0.1:8000/api/groups/${id}/expenses`)
       .then((res) => res.json())
       .then((data) => setExpenses(data))
-      .catch((err) => console.error(err));
+      .catch((err) => console.error(err))
+      .finally(() => setExpensesLoading(false));
 
     // Fetch members analysis
+    setMembersLoading(true);
     fetch(`http://127.0.0.1:8000/api/groups/${id}/analysis`)
       .then((res) => res.json())
       .then((data) => {
@@ -49,18 +56,25 @@ export function GroupDetailsView({
           setMembers(data.member_details);
         }
       })
-      .catch((err) => console.error(err));
+      .catch((err) => console.error(err))
+      .finally(() => setMembersLoading(false));
   }, [id]);
 
   const handleSend = async () => {
     if (!promptValue.trim()) return;
     setIsLoading(true);
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/groups/${id}/expenses/ai`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text_input: promptValue, user_name: "John Doe" }),
-      });
+      const res = await fetch(
+        `http://127.0.0.1:8000/api/groups/${id}/expenses/ai`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            text_input: promptValue,
+            user_name: "John Doe",
+          }),
+        }
+      );
       if (res.ok) {
         const newExpense = await res.json();
         setExpenses((prev) => [newExpense, ...prev]);
@@ -74,7 +88,6 @@ export function GroupDetailsView({
               setMembers(data.member_details);
             }
           });
-
       } else {
         console.error("Failed to create expense");
       }
@@ -93,14 +106,33 @@ export function GroupDetailsView({
             Member Expenses
           </h4>
           <div className="flex-1 overflow-y-auto space-y-3 mb-4 pr-2 min-h-0">
-            {members.length === 0 ? (
+            {membersLoading ? (
+              // Skeleton for members
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Skeleton className="w-10 h-10 rounded-full" />
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-20" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-6 w-16" />
+                </div>
+              ))
+            ) : members.length === 0 ? (
               <p className="text-sm text-muted-foreground">No members found.</p>
             ) : (
               members.map((member) => (
-                <div key={member.name} className="flex items-center justify-between">
+                <div
+                  key={member.name}
+                  className="flex items-center justify-between"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="font-semibold text-primary">{member.name[0]}</span>
+                      <span className="font-semibold text-primary">
+                        {member.name[0]}
+                      </span>
                     </div>
                     <div>
                       <p className="font-medium">{member.name}</p>
@@ -109,8 +141,13 @@ export function GroupDetailsView({
                       </p>
                     </div>
                   </div>
-                  <span className={`text-lg font-bold ${member.balance >= 0 ? "text-chart-2" : "text-destructive"}`}>
-                    {member.balance >= 0 ? "+" : "-"}${Math.abs(member.balance).toFixed(2)}
+                  <span
+                    className={`text-lg font-bold ${
+                      member.balance >= 0 ? "text-chart-2" : "text-destructive"
+                    }`}
+                  >
+                    {member.balance >= 0 ? "+" : ""}
+                    {formatIndianRupee(Math.abs(member.balance))}
                   </span>
                 </div>
               ))
@@ -164,11 +201,27 @@ export function GroupDetailsView({
           <div className="flex-1 overflow-y-auto space-y-2 mb-4 min-h-0">
             {activeTab === "transactions" ? (
               <div className="space-y-2">
-                {expenses.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-4">No transactions yet.</p>
+                {expensesLoading ? (
+                  // Skeleton for transactions
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex justify-between items-center">
+                      <div className="space-y-1">
+                        <Skeleton className="h-4 w-32" />
+                        <Skeleton className="h-3 w-24" />
+                      </div>
+                      <Skeleton className="h-6 w-20" />
+                    </div>
+                  ))
+                ) : expenses.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No transactions yet.
+                  </p>
                 ) : (
                   expenses.map((expense) => (
-                    <div key={expense.id} className="flex justify-between items-center">
+                    <div
+                      key={expense.id}
+                      className="flex justify-between items-center"
+                    >
                       <div>
                         <span className="font-medium text-sm">
                           {expense.description}
@@ -177,7 +230,9 @@ export function GroupDetailsView({
                           Paid by {expense.payer.name}
                         </p>
                       </div>
-                      <p className="text-lg font-bold text-chart-2">${expense.amount}</p>
+                      <p className="text-lg font-bold text-chart-2">
+                        {formatIndianRupee(expense.amount)}
+                      </p>
                     </div>
                   ))
                 )}

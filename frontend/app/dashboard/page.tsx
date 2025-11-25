@@ -1,10 +1,12 @@
 "use client";
 
-import React, {useEffect, useState} from "react";
-import DashHeader from "@/components/dashboard/DashHeader";
-import { EmptyGroupsState } from "@/components/group/EmptyGroupsState";
-import { GroupCard } from "@/components/group/GroupCard";
+import React, { useEffect, useState } from "react";
+import DashHeader from "@/components/dashboard/dash-header";
+import { EmptyGroupsState } from "@/components/group/empty-groups-state";
+import { GroupCard } from "@/components/group/group-card";
+import { CardSkeleton } from "@/components/skeletons/card-skeleton";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { IconPlus } from "@tabler/icons-react";
 import {
   Dialog,
@@ -55,7 +57,6 @@ export default function DashBoard() {
     })();
   }, []);
 
-  if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
 
   const handleCreateGroup = async () => {
@@ -84,8 +85,8 @@ export default function DashBoard() {
   return (
     <div className="flex flex-col h-full">
       <DashHeader onSearch={setSearchQuery} />
-      <main className="flex-1 overflow-auto p-6"> 
-        {groups.length === 0 ? (
+      <main className="flex-1 overflow-auto p-6">
+        {groups.length === 0 && !loading ? (
           <div className="flex items-center justify-center h-full">
             <EmptyGroupsState />
           </div>
@@ -98,7 +99,11 @@ export default function DashBoard() {
               </h1>
               <div className="flex items-center gap-4">
                 <div className="text-sm text-neutral-600 dark:text-neutral-400">
-                  {filteredGroups.length} groups
+                  {loading ? (
+                    <Skeleton className="h-4 w-16" />
+                  ) : (
+                    `${filteredGroups.length} groups`
+                  )}
                 </div>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                   <DialogTrigger asChild>
@@ -139,17 +144,16 @@ export default function DashBoard() {
                           <label className="block text-sm font-medium mb-1">
                             Duration
                           </label>
-                          <Select value={newGroupType} onValueChange={setNewGroupType}>
+                          <Select
+                            value={newGroupType}
+                            onValueChange={setNewGroupType}
+                          >
                             <SelectTrigger>
                               <SelectValue placeholder="Select duration" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="SHORT">
-                                Short Term
-                              </SelectItem>
-                              <SelectItem value="LONG">
-                                Long Term
-                              </SelectItem>
+                              <SelectItem value="SHORT">Short Term</SelectItem>
+                              <SelectItem value="LONG">Long Term</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -185,10 +189,7 @@ export default function DashBoard() {
                           </Select>
                         </div>
                       </div>
-                      <Button
-                        onClick={handleCreateGroup}
-                        className="w-full"
-                      >
+                      <Button onClick={handleCreateGroup} className="w-full">
                         Create Group
                       </Button>
                     </div>
@@ -198,9 +199,17 @@ export default function DashBoard() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredGroups.map((group) => (
-                <GroupCard key={group.id} {...group} id={group.id.toString()} />
-              ))}
+              {loading
+                ? Array.from({ length: 6 }).map((_, index) => (
+                    <CardSkeleton key={`skeleton-${index}`} />
+                  ))
+                : filteredGroups.map((group) => (
+                    <GroupCard
+                      key={group.id}
+                      {...group}
+                      id={group.id.toString()}
+                    />
+                  ))}
             </div>
           </div>
         )}

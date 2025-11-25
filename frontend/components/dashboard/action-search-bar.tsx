@@ -3,6 +3,7 @@
 import React from "react";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { useDebouncedValue } from "@/hooks/debounce";
 
 interface ActionSearchBarProps {
   onSearch?: (query: string) => void;
@@ -10,6 +11,11 @@ interface ActionSearchBarProps {
 
 export function ActionSearchBar({ onSearch }: ActionSearchBarProps) {
   const [query, setQuery] = React.useState("");
+  const debouncedQuery = useDebouncedValue(query, 300);
+
+  React.useEffect(() => {
+    onSearch?.(debouncedQuery);
+  }, [debouncedQuery, onSearch]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,7 +26,6 @@ export function ActionSearchBar({ onSearch }: ActionSearchBarProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newQuery = e.target.value;
     setQuery(newQuery);
-    onSearch?.(newQuery);
   };
 
   return (

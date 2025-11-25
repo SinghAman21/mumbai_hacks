@@ -4,8 +4,8 @@ import React, { useId } from "react";
 import { Button } from "@/components/ui/button";
 import { IconUsers, IconArrowLeft, IconX } from "@tabler/icons-react";
 import { motion, AnimatePresence } from "motion/react";
-import { GroupSettings } from "./GroupSettings";
-import { GroupDetailsView } from "./sections/GroupDetailsView";
+import { GroupSettings } from "./group-settings";
+import { GroupDetailsView } from "./sections/group-details-view";
 
 interface GroupExpandedViewProps {
   id: string;
@@ -18,6 +18,7 @@ interface GroupExpandedViewProps {
 
   onClose: () => void;
   view?: "details" | "settings";
+  animateInitial?: boolean;
 }
 
 export function GroupExpandedView({
@@ -31,6 +32,7 @@ export function GroupExpandedView({
 
   onClose,
   view = "details",
+  animateInitial = true,
 }: GroupExpandedViewProps) {
   const id_unique = useId();
 
@@ -43,7 +45,7 @@ export function GroupExpandedView({
         >
           <motion.div
             layoutId={`card-${name}-${id_unique}`}
-            initial={{ scale: 0.9, opacity: 0 }}
+            initial={animateInitial ? { scale: 0.9, opacity: 0 } : {}}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
