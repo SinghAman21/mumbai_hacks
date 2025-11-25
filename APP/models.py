@@ -88,6 +88,9 @@ class Expense(models.Model):
     # Diagram: category
     category = models.CharField(max_length=50)
 
+    # Created at timestamp for dashboard activity
+    created_at = models.DateTimeField(auto_now_add=True)
+
     def __str__(self):
         return f"{self.description} - {self.amount}"
 
