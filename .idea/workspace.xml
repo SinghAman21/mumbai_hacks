@@ -4,7 +4,23 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="646dd0a7-2f6f-42a5-b90b-2a8f6ba0bf46" name="Changes" comment="modified .gitignore" />
+    <list default="true" id="646dd0a7-2f6f-42a5-b90b-2a8f6ba0bf46" name="Changes" comment="modified .gitignore">
+      <change beforePath="$PROJECT_DIR$/.idea/Integration.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Integration.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/APP/api.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/APP/api.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/dashboard/@modal/(.)group/[id]/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/dashboard/@modal/(.)group/[id]/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/dashboard/@modal/(.)group/[id]/settings/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/dashboard/@modal/(.)group/[id]/settings/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/dashboard/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/dashboard/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/group/empty-groups-state.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/group/empty-groups-state.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/group/group-expanded-view.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/group/group-expanded-view.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/group/group-settings.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/group/group-settings.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/components/group/sections/settings-tabs.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/components/group/sections/settings-tabs.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/lib/api.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/lib/api.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/pnpm-lock.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/pnpm-lock.yaml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -20,6 +36,7 @@
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="HARD" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
   &quot;lastFilter&quot;: {
@@ -33,6 +50,9 @@
     &quot;accountId&quot;: &quot;82494d12-31cb-497b-9a6b-b4cea92f8d9b&quot;
   }
 }</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 3
 }</component>
@@ -41,23 +61,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.OpenDjangoStructureViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "tempmain",
-    "last_opened_file_path": "C:/Users/sumed/Desktop/Python Projects/Integration/frontend",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "com.intellij.python.django.customization.DjangoModulesConfigurable",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.OpenDjangoStructureViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/sumed/Desktop/Python Projects/Integration/frontend&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.intellij.python.django.customization.DjangoModulesConfigurable&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\sumed\\Desktop\\Python Projects\\Integration\\frontend\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\sumed\Desktop\Python Projects\Integration\frontend" />
@@ -108,6 +130,7 @@
       <updated>1764076592773</updated>
       <workItem from="1764076594123" duration="1284000" />
       <workItem from="1764078413724" duration="372000" />
+      <workItem from="1764140085577" duration="2549000" />
     </task>
     <task id="LOCAL-00001" summary="integrated groups, members, transactions with backend">
       <option name="closed" value="true" />
@@ -130,6 +153,17 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="integrated groups, members, transactions with backend" />

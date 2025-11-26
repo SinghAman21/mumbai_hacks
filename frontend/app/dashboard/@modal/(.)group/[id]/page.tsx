@@ -43,7 +43,7 @@ export default function InterceptedGroupPage() {
 
   return (
     <GroupExpandedView
-      id={group.id.toString()}
+      id={group.id}
       name={group.name}
       memberCount={group.memberCount}
       lastActivity={group.lastActivity}

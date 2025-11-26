@@ -92,7 +92,14 @@ def update_group(request, group_id: int, payload: GroupUpdateSchema):
         setattr(group, attr, value)
     group.save()
     group.save()
+    group.save()
     return group
+
+@api.delete("/groups/{group_id}")
+def delete_group(request, group_id: int):
+    group = get_object_or_404(Group, id=group_id)
+    group.delete()
+    return {"success": True}
 
 @api.get("/groups/{group_id}/expenses", response=List[ExpenseSchema])
 def list_group_expenses(request, group_id: int):

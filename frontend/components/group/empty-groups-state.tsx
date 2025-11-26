@@ -30,19 +30,42 @@ import {
 } from "@tabler/icons-react";
 import { motion } from "motion/react";
 
-export function EmptyGroupsState() {
+import { createGroup, Group } from "@/lib/api";
+
+interface EmptyGroupsStateProps {
+  onGroupCreated?: (group: Group) => void;
+}
+
+export function EmptyGroupsState({ onGroupCreated }: EmptyGroupsStateProps) {
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
   const [joinViaLinkOpen, setJoinViaLinkOpen] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [groupDescription, setGroupDescription] = useState("");
   const [inviteLink, setInviteLink] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleCreateGroup = (e: React.FormEvent) => {
+  const handleCreateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Creating group:", { groupName, groupDescription });
-    setCreateGroupOpen(false);
-    setGroupName("");
-    setGroupDescription("");
+    if (!groupName) return;
+
+    setLoading(true);
+    try {
+      const newGroup = await createGroup({
+        name: groupName,
+        type: "SHORT", // Default type
+      });
+      console.log("Group created:", newGroup);
+      if (onGroupCreated) {
+        onGroupCreated(newGroup);
+      }
+      setCreateGroupOpen(false);
+      setGroupName("");
+      setGroupDescription("");
+    } catch (error) {
+      console.error("Failed to create group:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleJoinViaLink = (e: React.FormEvent) => {

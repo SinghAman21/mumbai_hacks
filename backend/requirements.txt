@@ -1,0 +1,7 @@
+django
+django-ninja
+django-cors-headers
+python-dotenv
+psycopg2-binary
+google-generativeai
+requests

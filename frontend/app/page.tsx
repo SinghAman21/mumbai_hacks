@@ -1,5 +1,5 @@
 import { ModeToggle } from "@/components/modetoggle";
-import { Hero } from "@/components/landing/hero";
+import { Hero } from "@/components/landing/Hero";
 
 export default function Home() {
   return (

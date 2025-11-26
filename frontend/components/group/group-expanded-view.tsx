@@ -90,7 +90,7 @@ export function GroupExpandedView({
 
             {/* in this section the settings page and the transactions page will be displayed */}
             {view === "settings" ? (
-              <GroupSettings />
+              <GroupSettings id={id} name={name} memberCount={memberCount} />
             ) : (
               <GroupDetailsView
                 id={id}

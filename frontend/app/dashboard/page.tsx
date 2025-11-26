@@ -7,7 +7,7 @@ import { GroupCard } from "@/components/group/group-card";
 import { CardSkeleton } from "@/components/skeletons/card-skeleton";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { IconPlus } from "@tabler/icons-react";
+import { IconPlus, IconLoader2 } from "@tabler/icons-react";
 import {
   Dialog,
   DialogContent,
@@ -29,6 +29,7 @@ import { createGroup, fetchGroups, Group } from "@/lib/api";
 export default function DashBoard() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -61,6 +62,7 @@ export default function DashBoard() {
 
   const handleCreateGroup = async () => {
     if (!newGroupName) return; // Basic validation
+    setCreating(true);
     try {
       const newGroup = await createGroup({
         name: newGroupName,
@@ -75,6 +77,8 @@ export default function DashBoard() {
     } catch (error) {
       console.error("Failed to create group:", error);
       // Optionally, show an error message to the user
+    } finally {
+      setCreating(false);
     }
   };
   // Filter groups based on a search query
@@ -88,7 +92,11 @@ export default function DashBoard() {
       <main className="flex-1 overflow-auto p-6">
         {groups.length === 0 && !loading ? (
           <div className="flex items-center justify-center h-full">
-            <EmptyGroupsState />
+            <EmptyGroupsState
+              onGroupCreated={(newGroup) =>
+                setGroups((prev) => [...prev, newGroup])
+              }
+            />
           </div>
         ) : (
           /* Groups list */
@@ -189,8 +197,15 @@ export default function DashBoard() {
                           </Select>
                         </div>
                       </div>
-                      <Button onClick={handleCreateGroup} className="w-full">
-                        Create Group
+                      <Button onClick={handleCreateGroup} className="w-full" disabled={creating}>
+                        {creating ? (
+                          <>
+                            <IconLoader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Creating...
+                          </>
+                        ) : (
+                          "Create Group"
+                        )}
                       </Button>
                     </div>
                   </DialogContent>
@@ -201,15 +216,15 @@ export default function DashBoard() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {loading
                 ? Array.from({ length: 6 }).map((_, index) => (
-                    <CardSkeleton key={`skeleton-${index}`} />
-                  ))
+                  <CardSkeleton key={`skeleton-${index}`} />
+                ))
                 : filteredGroups.map((group) => (
-                    <GroupCard
-                      key={group.id}
-                      {...group}
-                      id={group.id.toString()}
-                    />
-                  ))}
+                  <GroupCard
+                    key={group.id}
+                    {...group}
+                    id={group.id.toString()}
+                  />
+                ))}
             </div>
           </div>
         )}
