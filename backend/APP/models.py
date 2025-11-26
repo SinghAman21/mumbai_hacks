@@ -8,6 +8,12 @@ class User(models.Model):
     # Diagram: Name
     name = models.CharField(max_length=100)
 
+    clerk_user_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
+    email = models.EmailField(unique=True, null=True, blank=True)
+    profile_image_url = models.URLField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
     def __str__(self):
         return self.name
 
