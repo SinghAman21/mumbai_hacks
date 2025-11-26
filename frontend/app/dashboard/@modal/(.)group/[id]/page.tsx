@@ -9,42 +9,84 @@ import { useAuth, useUser } from "@clerk/nextjs";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 export default function InterceptedGroupPage() {
-  const { getToken, isLoaded: authLoaded } = useAuth();
-  const { isLoaded: userLoaded } = useUser();
   const router = useRouter();
   const params = useParams();
-  const id = parseInt(params.id as string, 10);
+  const rawId = params?.id;
 
+  // 🔒 Safe param parsing
+  const id = rawId ? Number(rawId) : null;
+
+  const { getToken, isLoaded: authLoaded } = useAuth();
+  const { isLoaded: userLoaded } = useUser();
+
+  // STATE
+  const [token, setToken] = useState<string | null>(null);
+  const [group, setGroup] = useState<Group | null>(null);
   const [activeTab, setActiveTab] = useState<"transactions" | "members">(
     "transactions"
   );
-  const [group, setGroup] = useState<Group | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  /* -----------------------------------------
+      1️⃣  LOAD TOKEN SAFELY
+  ------------------------------------------ */
 
   useEffect(() => {
-    if (!id || !authLoaded || !userLoaded) return;
+    if (!authLoaded) return;
+
+    getToken().then((t) => {
+      if (!t) {
+        router.push("/sign-in");
+        return;
+      }
+      setToken(t);
+    });
+  }, [authLoaded, getToken, router]);
+
+  /* -----------------------------------------
+      2️⃣  FETCH GROUP INFO
+  ------------------------------------------ */
+
+  useEffect(() => {
+    if (!id || !token || !authLoaded || !userLoaded) return;
+
+    let cancelled = false;
 
     (async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const token = await getToken();
-        const data = await fetchGroup(id, token);
-        setGroup(data);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load group");
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [id, getToken, authLoaded, userLoaded]);
+      setLoading(true);
+      setError(null);
 
-  // Show loading skeleton while auth or data is loading
+      const { data, error, status } = await fetchGroup(id, token);
+
+      if (cancelled) return;
+
+      if (status === 401) {
+        router.push("/sign-in");
+        return;
+      }
+
+      if (error) {
+        setError(error);
+      } else {
+        setGroup(data);
+      }
+
+      setLoading(false);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, token, authLoaded, userLoaded, router]);
+
+  /* -----------------------------------------
+      LOADING STATE
+  ------------------------------------------ */
+
   if (!authLoaded || !userLoaded || loading) {
     return (
-      <Dialog open={true} onOpenChange={() => router.back()}>
+      <Dialog open={true} onOpenChange={() => router.push("/dashboard")}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0">
           <div className="p-6 space-y-4">
             <Skeleton className="h-8 w-64" />
@@ -60,9 +102,13 @@ export default function InterceptedGroupPage() {
     );
   }
 
+  /* -----------------------------------------
+      ERROR STATE
+  ------------------------------------------ */
+
   if (error) {
     return (
-      <Dialog open={true} onOpenChange={() => router.back()}>
+      <Dialog open={true} onOpenChange={() => router.push("/dashboard")}>
         <DialogContent className="max-w-md">
           <div className="text-center p-6">
             <h2 className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">
@@ -75,20 +121,28 @@ export default function InterceptedGroupPage() {
     );
   }
 
+  /* -----------------------------------------
+      NOT FOUND (group = null)
+  ------------------------------------------ */
+
   if (!group) {
     return (
-      <Dialog open={true} onOpenChange={() => router.back()}>
+      <Dialog open={true} onOpenChange={() => router.push("/dashboard")}>
         <DialogContent className="max-w-md">
           <div className="text-center p-6">
             <h2 className="text-xl font-bold mb-2">Group Not Found</h2>
             <p className="text-muted-foreground">
-              The requested group could not be found.
+              The requested group does not exist.
             </p>
           </div>
         </DialogContent>
       </Dialog>
     );
   }
+
+  /* -----------------------------------------
+      SUCCESS
+  ------------------------------------------ */
 
   return (
     <GroupExpandedView
@@ -99,7 +153,7 @@ export default function InterceptedGroupPage() {
       active={true}
       activeTab={activeTab}
       setActiveTab={setActiveTab}
-      onClose={() => router.back()}
+      onClose={() => router.push("/dashboard")}
       animateInitial={false}
     />
   );

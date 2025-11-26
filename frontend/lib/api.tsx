@@ -17,79 +17,100 @@ export interface GroupCreate {
 
 const API_URL = "http://localhost:8000/api";
 
-// Helper function to get auth headers with Clerk token
-async function getAuthHeaders(token: string | null): Promise<HeadersInit> {
-  const headers: HeadersInit = {
+// ⛔ DO NOT REDIRECT INSIDE FETCH
+// ⛔ DO NOT USE window.location HERE
+// This is server-safe and client-safe.
+
+/**
+ * Safe JSON parser — avoids frontend crashes
+ */
+async function safeJson<T>(response: Response): Promise<T> {
+  const text = await response.text();
+
+  if (!text) return {} as T;
+
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    // Backend returned text/HTML — return as text
+    return text as unknown as T;
+  }
+}
+
+/**
+ * Safe API client wrapper
+ */
+async function apiClient<T>(
+  url: string,
+  options: RequestInit,
+): Promise<{ data: T | null; error: string | null; status: number }> {
+  try {
+    const response = await fetch(url, options);
+
+    const status = response.status;
+    const isJson = response.headers.get("content-type")?.includes("application/json");
+
+    if (!response.ok) {
+      const errorBody = isJson ? await safeJson<any>(response) : null;
+
+      return {
+        data: null,
+        error:
+          errorBody?.message ||
+          errorBody?.error ||
+          `Request failed with status ${status}`,
+        status,
+      };
+    }
+
+    const data = isJson ? await safeJson<T>(response) : null;
+
+    return { data, error: null, status };
+  } catch (err: any) {
+    return {
+      data: null,
+      error: err?.message || "Network error",
+      status: 0,
+    };
+  }
+}
+
+/**
+ * Auth header helper
+ */
+async function authHeaders(token: string | null): Promise<HeadersInit> {
+  return {
     "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
-
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-
-  return headers;
 }
 
-// Helper function to handle API errors
-async function handleResponse<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    if (response.status === 401) {
-      // Unauthorized - token expired or invalid
-      window.location.href = "/sign-in";
-      throw new Error("Authentication required. Please sign in again.");
-    }
+/* ==============================
+       PUBLIC API FUNCTIONS
+============================== */
 
-    if (response.status === 403) {
-      throw new Error("You don't have permission to access this resource.");
-    }
-
-    // Try to get error message from response
-    try {
-      const errorData = await response.json();
-      throw new Error(errorData.message || errorData.error || "Request failed");
-    } catch {
-      throw new Error(`Request failed with status ${response.status}`);
-    }
-  }
-
-  return response.json();
-}
-
-export async function fetchGroups(token: string | null): Promise<Group[]> {
-  const response = await fetch(`${API_URL}/groups`, {
-    headers: await getAuthHeaders(token),
+export async function fetchGroups(token: string | null) {
+  return apiClient<Group[]>(`${API_URL}/groups`, {
+    headers: await authHeaders(token),
   });
-  return handleResponse<Group[]>(response);
 }
 
-export async function createGroup(
-  groupData: GroupCreate,
-  token: string | null
-): Promise<Group> {
-  const response = await fetch(`${API_URL}/groups`, {
+export async function createGroup(groupData: GroupCreate, token: string | null) {
+  return apiClient<Group>(`${API_URL}/groups`, {
     method: "POST",
-    headers: await getAuthHeaders(token),
+    headers: await authHeaders(token),
     body: JSON.stringify(groupData),
   });
-  return handleResponse<Group>(response);
 }
 
-export async function fetchGroup(
-  id: number,
-  token: string | null
-): Promise<Group> {
-  const response = await fetch(`${API_URL}/groups/${id}`, {
-    headers: await getAuthHeaders(token),
+export async function fetchGroup(id: number, token: string | null) {
+  return apiClient<Group>(`${API_URL}/groups/${id}`, {
+    headers: await authHeaders(token),
   });
-  return handleResponse<Group>(response);
 }
 
-export async function fetchGroupAnalysis(
-  id: number,
-  token: string | null
-): Promise<any> {
-  const response = await fetch(`${API_URL}/groups/${id}/analysis`, {
-    headers: await getAuthHeaders(token),
+export async function fetchGroupAnalysis(id: number, token: string | null) {
+  return apiClient<any>(`${API_URL}/groups/${id}/analysis`, {
+    headers: await authHeaders(token),
   });
-  return handleResponse<any>(response);
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   Sidebar,
   SidebarBody,
@@ -13,121 +13,82 @@ import {
   IconFileInvoice,
   IconInfoCircle,
   IconSettings,
-  IconLogout,
 } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
 import Image from "next/image";
-import { useUser, useClerk } from "@clerk/nextjs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Link from "next/link";
 
 export function AppSidebar() {
-  const { user } = useUser();
-  const { signOut } = useClerk();
+  const [open, setOpen] = useState(false);
+
   const links = [
     {
       label: "Groups",
       href: "/dashboard",
-      icon: (
-        <IconUsers className="text-neutral-700 dark:text-neutral-200 h-5 w-5 shrink-0" />
-      ),
+      icon: <IconUsers className="h-5 w-5" />,
     },
     {
       label: "Inbox",
       href: "/dashboard/inbox",
-      icon: (
-        <IconInbox className="text-neutral-700 dark:text-neutral-200 h-5 w-5 shrink-0" />
-      ),
+      icon: <IconInbox className="h-5 w-5" />,
     },
     {
       label: "Invoice",
       href: "/dashboard/invoice",
-      icon: (
-        <IconFileInvoice className="text-neutral-700 dark:text-neutral-200 h-5 w-5 shrink-0" />
-      ),
+      icon: <IconFileInvoice className="h-5 w-5" />,
     },
     {
       label: "About",
       href: "/dashboard/about",
-      icon: (
-        <IconInfoCircle className="text-neutral-700 dark:text-neutral-200 h-5 w-5 shrink-0" />
-      ),
+      icon: <IconInfoCircle className="h-5 w-5" />,
     },
     {
       label: "Settings",
       href: "/dashboard/settings",
-      icon: (
-        <IconSettings className="text-neutral-700 dark:text-neutral-200 h-5 w-5 shrink-0" />
-      ),
+      icon: <IconSettings className="h-5 w-5" />,
     },
   ];
 
-  const [open, setOpen] = React.useState(false);
-
   return (
-    <Sidebar open={open} setOpen={setOpen}>
-      <SidebarBody className="justify-between gap-10">
-        <div className="flex flex-col shrink-0 overflow-y-auto overflow-x-hidden">
-          {/* Logo */}
-          <Logo />
+    <>
+      <Sidebar open={open} setOpen={setOpen}>
+        <SidebarBody className="gap-10">
+          <div className="flex flex-col shrink-0 overflow-y-auto">
+            {/* Logo */}
+            <Logo />
 
-          {/* Navigation Menu */}
-          <div className="mt-8 flex flex-col gap-5">
-            {links.map((link, idx) => (
-              <SidebarLink key={idx} link={link} />
-            ))}
-          </div>
-        </div>
-
-        {/* User Profile Section */}
-        <div className="flex flex-col gap-2">
-          <button
-            onClick={() => {
-              if (confirm("Are you sure you want to sign out?")) {
-                signOut({ redirectUrl: "/" });
-              }
-            }}
-            className="flex items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950 rounded-md transition-colors"
-          >
-            <IconLogout className="h-5 w-5 shrink-0" />
-            <span className={cn("whitespace-nowrap", !open && "hidden")}>
-              Sign Out
-            </span>
-          </button>
-
-          <div className="flex items-center gap-2 px-3 py-2 border-t border-neutral-200 dark:border-neutral-800 pt-4">
-            <Avatar className="h-8 w-8">
-              <AvatarImage
-                src={user?.imageUrl}
-                alt={user?.fullName || "User"}
-              />
-              <AvatarFallback>
-                {user?.firstName?.[0]}
-                {user?.lastName?.[0]}
-              </AvatarFallback>
-            </Avatar>
-            <div className={cn("flex flex-col", !open && "hidden")}>
-              <span className="text-sm font-medium text-neutral-800 dark:text-white">
-                {user?.fullName || "User"}
-              </span>
-              <span className="text-xs text-neutral-600 dark:text-neutral-400 truncate max-w-[150px]">
-                {user?.primaryEmailAddress?.emailAddress}
-              </span>
+            {/* Navigation */}
+            <div className="mt-8 flex flex-col gap-5">
+              {links.map((link, idx) => (
+                <SidebarLink
+                  key={idx}
+                  link={{
+                    ...link,
+                    icon: (
+                      <div className="text-neutral-700 dark:text-neutral-200">
+                        {link.icon}
+                      </div>
+                    ),
+                  }}
+                ></SidebarLink>
+              ))}
             </div>
           </div>
-        </div>
-      </SidebarBody>
-    </Sidebar>
+        </SidebarBody>
+      </Sidebar>
+    </>
   );
 }
 
+// LOGO COMPONENT - FIXED (no full reload)
 export const Logo = () => {
   const { open } = useSidebar();
 
   return (
-    <a
+    <Link
       href="/"
-      className="font-bold text-xl text-neutral-800 dark:text-white py-1 relative z-20 flex items-center gap-2"
+      className="font-bold text-xl text-neutral-800 dark:text-white py-1 flex items-center gap-2"
     >
       <div className="h-10 w-10 relative rounded-full overflow-hidden bg-neutral-200 dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600">
         <Image
@@ -138,17 +99,15 @@ export const Logo = () => {
           priority
         />
       </div>
+
       <motion.span
         initial={{ opacity: 0, width: 0 }}
-        animate={{
-          opacity: open ? 1 : 0,
-          width: open ? "auto" : 0,
-        }}
+        animate={{ opacity: open ? 1 : 0, width: open ? "auto" : 0 }}
         transition={{ duration: 0.2 }}
         className="font-bold text-lg whitespace-nowrap overflow-hidden"
       >
         SplitSphere
       </motion.span>
-    </a>
+    </Link>
   );
 };

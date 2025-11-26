@@ -45,23 +45,38 @@ export default function DashBoard() {
   const [newGroupType, setNewGroupType] = useState("SHORT");
   const [newGroupMemberLimit, setNewGroupMemberLimit] = useState("");
 
-  useEffect(() => {
-    if (!authLoaded || !userLoaded) return;
+ useEffect(() => {
+  if (!authLoaded || !userLoaded) return;
 
-    (async () => {
-      try {
-        setLoading(true);
-        const token = await getToken();
-        const data = await fetchGroups(token);
-        setGroups(data);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load groups");
-      } finally {
-        setLoading(false);
+  (async () => {
+    try {
+      setLoading(true);
+
+      const token = await getToken();
+      const { data, error, status } = await fetchGroups(token);
+
+      if (status === 401) {
+        setError("Unauthorized");
+        setGroups([]);
+        return;
       }
-    })();
-  }, [getToken, authLoaded, userLoaded]);
+
+      if (error) {
+        setError(error);
+        setGroups([]);
+        return;
+      }
+
+      setGroups(data || []);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load groups");
+    } finally {
+      setLoading(false);
+    }
+  })();
+}, [getToken, authLoaded, userLoaded]);
+
 
   // Show loading state while Clerk is initializing
   if (!authLoaded || !userLoaded) {
