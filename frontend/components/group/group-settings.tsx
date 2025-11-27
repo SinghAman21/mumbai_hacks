@@ -12,6 +12,9 @@ import {
 import { DangerZone } from "./sections/danger-zone";
 import { ConfirmationDialog } from "./sections/confirmation-dialog";
 
+import { deleteGroup } from "@/lib/api";
+import { useRouter } from "next/navigation";
+
 interface GroupSettingsProps {
   id?: string;
   name?: string;
@@ -21,19 +24,26 @@ interface GroupSettingsProps {
 type SettingsTab = "general" | "invite" | "activity" | "export" | "danger";
 
 export function GroupSettings({ id, name, memberCount }: GroupSettingsProps) {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<SettingsTab>("general");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirmAction, setConfirmAction] = useState<"leave" | "delete" | null>(
     null
   );
 
-  const handleConfirmAction = () => {
+  const handleConfirmAction = async () => {
     if (confirmAction === "leave") {
       // Handle leave group logic
       console.log("Leaving group...");
     } else if (confirmAction === "delete") {
-      // Handle delete group logic
-      console.log("Deleting group...");
+      if (id) {
+        try {
+          await deleteGroup(parseInt(id));
+          window.location.href = "/dashboard";
+        } catch (error) {
+          console.error("Failed to delete group", error);
+        }
+      }
     }
     setShowConfirmDialog(false);
     setConfirmAction(null);
@@ -47,13 +57,13 @@ export function GroupSettings({ id, name, memberCount }: GroupSettingsProps) {
   const renderTabContent = () => {
     switch (activeTab) {
       case "general":
-        return <GeneralSettings name={name} />;
+        return <GeneralSettings id={id} name={name} />;
       case "invite":
         return <InviteSettings id={id} />;
       case "activity":
-        return <ActivitySettings />;
+        return <ActivitySettings id={id} />;
       case "export":
-        return <ExportSettings />;
+        return <ExportSettings id={id} />;
       case "danger":
         return (
           <DangerZone
@@ -62,7 +72,7 @@ export function GroupSettings({ id, name, memberCount }: GroupSettingsProps) {
           />
         );
       default:
-        return <GeneralSettings name={name} />;
+        return <GeneralSettings id={id} name={name} />;
     }
   };
 

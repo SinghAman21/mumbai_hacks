@@ -6,7 +6,7 @@ import { GroupExpandedView } from "@/components/group/group-expanded-view";
 import { fetchGroup, Group } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth, useUser } from "@clerk/nextjs";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 export default function InterceptedGroupPage() {
   const router = useRouter();
@@ -88,6 +88,7 @@ export default function InterceptedGroupPage() {
     return (
       <Dialog open={true} onOpenChange={() => router.push("/dashboard")}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0">
+          <DialogTitle className="sr-only">Loading Group</DialogTitle>
           <div className="p-6 space-y-4">
             <Skeleton className="h-8 w-64" />
             <Skeleton className="h-4 w-32" />
@@ -111,9 +112,9 @@ export default function InterceptedGroupPage() {
       <Dialog open={true} onOpenChange={() => router.push("/dashboard")}>
         <DialogContent className="max-w-md">
           <div className="text-center p-6">
-            <h2 className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">
+            <DialogTitle className="text-xl font-bold text-red-600 dark:text-red-400 mb-2">
               Error
-            </h2>
+            </DialogTitle>
             <p className="text-muted-foreground">{error}</p>
           </div>
         </DialogContent>
@@ -130,7 +131,7 @@ export default function InterceptedGroupPage() {
       <Dialog open={true} onOpenChange={() => router.push("/dashboard")}>
         <DialogContent className="max-w-md">
           <div className="text-center p-6">
-            <h2 className="text-xl font-bold mb-2">Group Not Found</h2>
+            <DialogTitle className="text-xl font-bold mb-2">Group Not Found</DialogTitle>
             <p className="text-muted-foreground">
               The requested group does not exist.
             </p>
@@ -155,6 +156,7 @@ export default function InterceptedGroupPage() {
       setActiveTab={setActiveTab}
       onClose={() => router.push("/dashboard")}
       animateInitial={false}
+      token={token}
     />
   );
 }

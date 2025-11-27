@@ -40,6 +40,7 @@ export function EmptyGroupsState({ onCreate }: EmptyGroupsStateProps) {
   const [groupName, setGroupName] = useState("");
   const [groupDescription, setGroupDescription] = useState("");
   const [inviteLink, setInviteLink] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleCreateGroup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -202,4 +203,5 @@ export function EmptyGroupsState({ onCreate }: EmptyGroupsStateProps) {
       </Empty>
     </motion.div>
   );
+
 }

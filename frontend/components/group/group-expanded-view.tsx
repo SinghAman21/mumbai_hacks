@@ -19,6 +19,7 @@ interface GroupExpandedViewProps {
   onClose: () => void;
   view?: "details" | "settings";
   animateInitial?: boolean;
+  token?: string | null;
 }
 
 export function GroupExpandedView({
@@ -33,6 +34,7 @@ export function GroupExpandedView({
   onClose,
   view = "details",
   animateInitial = true,
+  token = null,
 }: GroupExpandedViewProps) {
   const id_unique = useId();
 
@@ -90,12 +92,13 @@ export function GroupExpandedView({
 
             {/* in this section the settings page and the transactions page will be displayed */}
             {view === "settings" ? (
-              <GroupSettings />
+              <GroupSettings id={id} name={name} memberCount={memberCount} />
             ) : (
               <GroupDetailsView
                 id={id}
                 activeTab={activeTab}
                 setActiveTab={setActiveTab}
+                token={token}
               />
             )}
           </motion.div>

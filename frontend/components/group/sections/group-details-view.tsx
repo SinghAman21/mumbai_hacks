@@ -19,17 +19,20 @@ import {
 } from "@/components/ui/prompt-input";
 import { formatIndianRupee } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PerUserData } from "../per-user-data";
 
 interface GroupDetailsViewProps {
   id: string;
   activeTab: "transactions" | "members";
   setActiveTab: (tab: "transactions" | "members") => void;
+  token: string | null;
 }
 
 export function GroupDetailsView({
   id,
   activeTab,
   setActiveTab,
+  token,
 }: GroupDetailsViewProps) {
   const [expenses, setExpenses] = React.useState<any[]>([]);
   const [members, setMembers] = React.useState<any[]>([]);
@@ -39,17 +42,37 @@ export function GroupDetailsView({
   const [expensesLoading, setExpensesLoading] = React.useState(true);
 
   React.useEffect(() => {
+    if (!token) return;
+
     // Fetch expenses
     setExpensesLoading(true);
-    fetch(`http://127.0.0.1:8000/api/groups/${id}/expenses`)
+    fetch(`http://127.0.0.1:8000/api/groups/${id}/expenses`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((res) => res.json())
-      .then((data) => setExpenses(data))
-      .catch((err) => console.error(err))
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setExpenses(data);
+        } else {
+          console.error("Expected array for expenses, got:", data);
+          setExpenses([]);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setExpenses([]);
+      })
       .finally(() => setExpensesLoading(false));
 
     // Fetch members analysis
     setMembersLoading(true);
-    fetch(`http://127.0.0.1:8000/api/groups/${id}/analysis`)
+    fetch(`http://127.0.0.1:8000/api/groups/${id}/analysis`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
       .then((res) => res.json())
       .then((data) => {
         if (data.member_details) {
@@ -58,17 +81,20 @@ export function GroupDetailsView({
       })
       .catch((err) => console.error(err))
       .finally(() => setMembersLoading(false));
-  }, [id]);
+  }, [id, token]);
 
   const handleSend = async () => {
-    if (!promptValue.trim()) return;
+    if (!promptValue.trim() || !token) return;
     setIsLoading(true);
     try {
       const res = await fetch(
         `http://127.0.0.1:8000/api/groups/${id}/expenses/ai`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify({
             text_input: promptValue,
             user_name: "John Doe",
@@ -81,7 +107,11 @@ export function GroupDetailsView({
         setPromptValue("");
 
         // Refresh analysis to update balances
-        fetch(`http://127.0.0.1:8000/api/groups/${id}/analysis`)
+        fetch(`http://127.0.0.1:8000/api/groups/${id}/analysis`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
           .then((res) => res.json())
           .then((data) => {
             if (data.member_details) {
@@ -97,6 +127,8 @@ export function GroupDetailsView({
       setIsLoading(false);
     }
   };
+
+  const [selectedUser, setSelectedUser] = React.useState<string | null>(null);
 
   return (
     <div className="flex-1 overflow-hidden flex flex-col">
@@ -125,8 +157,9 @@ export function GroupDetailsView({
             ) : (
               members.map((member) => (
                 <div
-                  key={member.name}
-                  className="flex items-center justify-between"
+                  key={member.name} // displays user_name
+                  className="flex items-center justify-between cursor-pointer hover:bg-muted/50 p-2 rounded-lg transition-colors"
+                  onClick={() => setSelectedUser(member.name)}
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -142,9 +175,8 @@ export function GroupDetailsView({
                     </div>
                   </div>
                   <span
-                    className={`text-lg font-bold ${
-                      member.balance >= 0 ? "text-chart-2" : "text-destructive"
-                    }`}
+                    className={`text-lg font-bold ${member.balance >= 0 ? "text-chart-2" : "text-destructive"
+                      }`}
                   >
                     {member.balance >= 0 ? "+" : ""}
                     {formatIndianRupee(Math.abs(member.balance))}
@@ -266,6 +298,14 @@ export function GroupDetailsView({
           </Button>
         </div>
       </div>
+      {selectedUser && (
+        <PerUserData
+          isOpen={!!selectedUser}
+          onClose={() => setSelectedUser(null)}
+          userName={selectedUser}
+          expenses={expenses}
+        />
+      )}
     </div>
   );
 }

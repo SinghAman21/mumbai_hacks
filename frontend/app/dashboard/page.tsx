@@ -7,7 +7,7 @@ import { GroupCard } from "@/components/group/group-card";
 import { CardSkeleton } from "@/components/skeletons/card-skeleton";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { IconPlus } from "@tabler/icons-react";
+import { IconPlus, IconLoader2 } from "@tabler/icons-react";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +32,7 @@ export default function DashBoard() {
   const { user, isLoaded: userLoaded } = useUser();
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -310,8 +311,15 @@ export default function DashBoard() {
                           </Select>
                         </div>
                       </div>
-                      <Button onClick={handleCreateGroup} className="w-full">
-                        Create Group
+                      <Button onClick={handleCreateGroup} className="w-full" disabled={creating}>
+                        {creating ? (
+                          <>
+                            <IconLoader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Creating...
+                          </>
+                        ) : (
+                          "Create Group"
+                        )}
                       </Button>
                     </div>
                   </DialogContent>
