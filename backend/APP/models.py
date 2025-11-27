@@ -93,3 +93,20 @@ class ExpenseSplit(models.Model):
 
     def __str__(self):
         return f"{self.user} owes {self.owed_amount}"
+
+
+class GroupLog(models.Model):
+    ACTION_CHOICES = [
+        ('JOIN', 'Member Joined'),
+        ('LEAVE', 'Member Left'),
+        ('RENAME', 'Group Renamed'),
+    ]
+
+    id = models.AutoField(primary_key=True)
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name='logs')
+    action = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    details = models.TextField(help_text="Details about the action (e.g., user name, old/new group name)")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"[{self.group.name}] {self.action} - {self.created_at}"

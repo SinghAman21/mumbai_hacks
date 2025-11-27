@@ -11,9 +11,12 @@ import {
   IconActivity,
   IconDownload,
   IconLoader2,
+  IconLink,
+  IconCheck,
 } from "@tabler/icons-react";
-import { updateGroup, fetchGroupExpenses, Expense } from "@/lib/api";
+import { updateGroup, fetchGroupExpenses, fetchGroupLogs, Expense, GroupLog, generateInviteLink } from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
+import { useAuth } from "@clerk/nextjs";
 
 interface GeneralSettingsProps {
   id?: string;
@@ -21,6 +24,7 @@ interface GeneralSettingsProps {
 }
 
 export function GeneralSettings({ id, name: initialName }: GeneralSettingsProps) {
+  const { getToken } = useAuth();
   const [name, setName] = useState(initialName || "");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -30,7 +34,8 @@ export function GeneralSettings({ id, name: initialName }: GeneralSettingsProps)
     setLoading(true);
     setSuccess(false);
     try {
-      await updateGroup(parseInt(id), { name });
+      const token = await getToken();
+      await updateGroup(parseInt(id), { name }, token);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 2000);
     } catch (error) {
@@ -59,7 +64,6 @@ export function GeneralSettings({ id, name: initialName }: GeneralSettingsProps)
             placeholder="Enter group name"
           />
         </div>
-        {/* Description field removed as it's not supported by backend */}
       </div>
       <div className="flex justify-end items-center gap-2">
         {success && <span className="text-green-600 text-sm">Saved!</span>}
@@ -77,41 +81,74 @@ interface InviteSettingsProps {
 }
 
 export function InviteSettings({ id }: InviteSettingsProps) {
-  const inviteLink = id ? `https://app.com/invite/${id}` : "";
+  const { getToken } = useAuth();
+  const [inviteLink, setInviteLink] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleGenerateLink = async () => {
+    if (!id) return;
+    setLoading(true);
+    try {
+      const token = await getToken();
+      const link = await generateInviteLink(parseInt(id), token);
+      setInviteLink(link);
+    } catch (error) {
+      console.error("Failed to generate link", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(inviteLink);
+    if (inviteLink) {
+      navigator.clipboard.writeText(inviteLink);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">Invite Members</h2>
-        <p className="text-muted-foreground">
-          Share this link to add people to the group.
+        <h3 className="text-lg font-medium">Invite Members</h3>
+        <p className="text-sm text-muted-foreground">
+          Share a temporary link to invite people to this group.
         </p>
       </div>
-      <Separator />
-      <div className="space-y-4">
-        <div className="flex gap-2">
-          <Input
-            readOnly
-            value={inviteLink}
-            className="font-mono text-sm"
-          />
-          <Button variant="outline" size="icon" onClick={copyToClipboard}>
-            <IconCopy className="w-4 h-4" />
-          </Button>
-          <Button variant="outline" size="icon">
-            <IconRefresh className="w-4 h-4" />
-          </Button>
-        </div>
-        <div className="p-4 bg-muted/50 rounded-lg text-center">
-          <p className="text-sm text-muted-foreground mb-2">Or scan QR code</p>
-          <div className="w-32 h-32 bg-white mx-auto rounded-lg border flex items-center justify-center">
-            <span className="text-xs text-muted-foreground">QR Code</span>
+
+      <div className="p-4 border rounded-lg space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="space-y-1">
+            <h4 className="text-sm font-medium">Temporary Invite Link</h4>
+            <p className="text-xs text-muted-foreground">
+              Valid for 10 minutes. Anyone with this link can join.
+            </p>
           </div>
+          <Button onClick={handleGenerateLink} disabled={loading}>
+            {loading ? (
+              <IconLoader2 className="w-4 h-4 animate-spin mr-2" />
+            ) : (
+              <IconLink className="w-4 h-4 mr-2" />
+            )}
+            Generate Link
+          </Button>
         </div>
+
+        {inviteLink && (
+          <div className="flex items-center gap-2 mt-4">
+            <div className="flex-1 p-2 bg-muted rounded text-sm font-mono truncate">
+              {inviteLink}
+            </div>
+            <Button size="icon" variant="outline" onClick={copyToClipboard}>
+              {copied ? (
+                <IconCheck className="w-4 h-4 text-green-500" />
+              ) : (
+                <IconCopy className="w-4 h-4" />
+              )}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -122,15 +159,18 @@ interface ActivitySettingsProps {
 }
 
 export function ActivitySettings({ id }: ActivitySettingsProps) {
-  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const { getToken } = useAuth();
+  const [logs, setLogs] = useState<GroupLog[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!id) return;
-    fetchGroupExpenses(parseInt(id))
-      .then(setExpenses)
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    getToken().then((token) => {
+      fetchGroupLogs(parseInt(id), token)
+        .then(setLogs)
+        .catch(console.error)
+        .finally(() => setLoading(false));
+    });
   }, [id]);
 
   return (
@@ -147,14 +187,14 @@ export function ActivitySettings({ id }: ActivitySettingsProps) {
           <div className="flex justify-center p-4">
             <IconLoader2 className="w-6 h-6 animate-spin text-muted-foreground" />
           </div>
-        ) : expenses.length === 0 ? (
+        ) : logs.length === 0 ? (
           <div className="text-center p-4 text-muted-foreground">
             No activity yet.
           </div>
         ) : (
-          expenses.map((expense) => (
+          logs.map((log) => (
             <div
-              key={expense.id}
+              key={log.id}
               className="flex items-start gap-4 p-4 border rounded-lg"
             >
               <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
@@ -162,10 +202,10 @@ export function ActivitySettings({ id }: ActivitySettingsProps) {
               </div>
               <div>
                 <p className="text-sm font-medium">
-                  {expense.payer.name} added "{expense.description}"
+                  {log.details}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(expense.created_at), {
+                  {formatDistanceToNow(new Date(log.created_at), {
                     addSuffix: true,
                   })}
                 </p>
@@ -183,10 +223,12 @@ interface ExportSettingsProps {
 }
 
 export function ExportSettings({ id }: ExportSettingsProps) {
+  const { getToken } = useAuth();
   const handleExportCSV = async () => {
     if (!id) return;
     try {
-      const expenses = await fetchGroupExpenses(parseInt(id));
+      const token = await getToken();
+      const expenses = await fetchGroupExpenses(parseInt(id), token);
       const csvContent =
         "Date,Description,Amount,Payer,Category\n" +
         expenses

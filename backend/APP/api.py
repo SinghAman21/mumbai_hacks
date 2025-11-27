@@ -1,9 +1,13 @@
 from ninja import NinjaAPI, Schema
 from typing import List, Optional
 from django.shortcuts import get_object_or_404
-from .models import Group, Expense, User, GroupMember
+from .models import Group, Expense, User, GroupMember, GroupLog
 from django.db.models import Sum, Count
 from datetime import datetime
+from django.core.signing import TimestampSigner, SignatureExpired, BadSignature
+from urllib.parse import unquote
+
+signer = TimestampSigner()
 
 api = NinjaAPI()
 
@@ -17,6 +21,12 @@ class ExpenseSchema(Schema):
     description: str
     category: str
     payer: UserSchema
+    created_at: datetime
+
+class GroupLogSchema(Schema):
+    id: int
+    action: str
+    details: str
     created_at: datetime
 
 class GroupSchema(Schema):
@@ -108,12 +118,98 @@ def delete_group(request, group_id: int):
     group.delete()
     return {"success": True}
 
+@api.post("/groups/{group_id}/leave")
+def leave_group(request, group_id: int):
+    user = request.user
+    group = get_object_or_404(Group, id=group_id, members=user)
+    
+    if group.owner == user:
+        # If owner leaves, delete the group
+        group.delete()
+        return {"message": "Group deleted", "action": "deleted"}
+    else:
+        # Otherwise just remove the user
+        GroupMember.objects.filter(group=group, user=user).delete()
+        GroupLog.objects.create(
+            group=group,
+            action='LEAVE',
+            details=f"{user.name} left the group"
+        )
+        return {"message": "Left group", "action": "left"}
+
+@api.post("/groups/{group_id}/invite")
+def generate_invite(request, group_id: int):
+    print(f"DEBUG: generate_invite called for group {group_id} by user {request.user}")
+    user = request.user
+    # Verify user is a member
+    get_object_or_404(Group, id=group_id, members=user)
+    
+    # Sign the Group ID
+    signed_token = signer.sign(group_id)
+    
+    # Return the full URL for the frontend
+    # Assuming frontend runs on localhost:3000 - ideally this should be from settings
+    invite_url = f"http://localhost:3000/join/{signed_token}"
+    
+    return {"invite_url": invite_url}
+
+class JoinGroupSchema(Schema):
+    token: str
+
+@api.post("/groups/join/", response=GroupSchema)
+def join_group(request, payload: JoinGroupSchema):
+    print(f"DEBUG: join_group called with token: {payload.token[:20]}...")
+    user = request.user
+    print(f"DEBUG: Authenticated user: {user}")
+    token = payload.token
+    
+    try:
+        # URL-decode the token first (it comes URL-encoded from the frontend)
+        decoded_token = unquote(token)
+        print(f"DEBUG: Decoded token: {decoded_token[:20]}...")
+        
+        # Unsign and Verify Timestamp (10 Minutes = 600 Seconds)
+        group_id = signer.unsign(decoded_token, max_age=600)
+        print(f"DEBUG: Unsigned group_id: {group_id}")
+        
+        group = get_object_or_404(Group, id=group_id)
+        print(f"DEBUG: Found group: {group.name}")
+        
+        # Add User to Group if not already member
+        if not group.members.filter(id=user.id).exists():
+            print(f"DEBUG: Adding user {user.name} to group {group.name}")
+            GroupMember.objects.create(group=group, user=user)
+            # Log the join
+            GroupLog.objects.create(
+                group=group,
+                action='JOIN',
+                details=f"{user.name} joined via invite link"
+            )
+        else:
+            print(f"DEBUG: User {user.name} already a member of {group.name}")
+            
+        return group
+        
+    except SignatureExpired:
+        print("DEBUG: Token expired")
+        return api.create_response(request, {'message': 'Link has expired'}, status=403)
+    except BadSignature:
+        print("DEBUG: Invalid token signature")
+        return api.create_response(request, {'message': 'Invalid link'}, status=403)
+
 @api.get("/groups/{group_id}/expenses", response=List[ExpenseSchema])
 def list_group_expenses(request, group_id: int):
     user = request.user
     # Verify user is a member of this group
     group = get_object_or_404(Group, id=group_id, members=user)
     return Expense.objects.filter(group=group).order_by('-created_at')
+
+@api.get("/groups/{group_id}/logs", response=List[GroupLogSchema])
+def list_group_logs(request, group_id: int):
+    user = request.user
+    # Verify user is a member of this group
+    group = get_object_or_404(Group, id=group_id, members=user)
+    return GroupLog.objects.filter(group=group).order_by('-created_at')
 
 class AIExpenseCreateSchema(Schema):
     text_input: str

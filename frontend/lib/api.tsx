@@ -118,13 +118,12 @@ export async function fetchGroupAnalysis(id: number, token: string | null) {
 
 export async function updateGroup(
   id: number,
-  groupData: Partial<GroupCreate>
+  groupData: Partial<GroupCreate>,
+  token: string | null
 ): Promise<Group> {
   const response = await fetch(`${API_URL}/groups/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: await authHeaders(token),
     body: JSON.stringify(groupData),
   });
   if (!response.ok) {
@@ -146,19 +145,78 @@ export interface Expense {
   created_at: string;
 }
 
-export async function fetchGroupExpenses(id: number): Promise<Expense[]> {
-  const response = await fetch(`${API_URL}/groups/${id}/expenses`);
+export interface GroupLog {
+  id: number;
+  action: string;
+  details: string;
+  created_at: string;
+}
+
+export async function fetchGroupExpenses(id: number, token: string | null): Promise<Expense[]> {
+  const response = await fetch(`${API_URL}/groups/${id}/expenses`, {
+    headers: await authHeaders(token),
+  });
   if (!response.ok) {
     throw new Error("Failed to fetch group expenses");
   }
   return response.json();
 }
 
-export async function deleteGroup(id: number): Promise<void> {
+export async function fetchGroupLogs(id: number, token: string | null): Promise<GroupLog[]> {
+  const response = await fetch(`${API_URL}/groups/${id}/logs`, {
+    headers: await authHeaders(token),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to fetch group logs");
+  }
+  return response.json();
+}
+
+export async function deleteGroup(id: number, token: string | null): Promise<void> {
   const response = await fetch(`${API_URL}/groups/${id}`, {
     method: "DELETE",
+    headers: await authHeaders(token),
   });
   if (!response.ok) {
     throw new Error("Failed to delete group");
   }
+}
+
+export async function leaveGroup(id: number, token: string | null): Promise<void> {
+  const response = await fetch(`${API_URL}/groups/${id}/leave`, {
+    method: "POST",
+    headers: await authHeaders(token),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to leave group");
+  }
+}
+
+export async function generateInviteLink(id: number, token: string | null): Promise<string> {
+  const response = await fetch(`${API_URL}/groups/${id}/invite`, {
+    method: "POST",
+    headers: await authHeaders(token),
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    console.error(`Generate invite failed: ${response.status} ${text}`);
+    throw new Error(`Failed to generate invite link: ${response.status} ${text}`);
+  }
+  const data = await response.json();
+  return data.invite_url;
+}
+
+export async function joinGroup(inviteToken: string, token: string | null): Promise<Group> {
+  const response = await fetch(`${API_URL}/groups/join/`, {
+    method: "POST",
+    headers: await authHeaders(token),
+    body: JSON.stringify({ token: inviteToken }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to join group");
+  }
+
+  return response.json();
 }

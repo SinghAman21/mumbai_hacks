@@ -5,8 +5,10 @@ import { useRouter, useParams } from "next/navigation";
 import { GroupExpandedView } from "@/components/group/group-expanded-view";
 // import { GROUPS_DATA } from "@/app/dashboard/data";
 import { fetchGroup, Group } from "@/lib/api"
+import { useAuth } from "@clerk/nextjs";
 
 export default function GroupSettingsPage() {
+    const { getToken } = useAuth();
     const router = useRouter();
     const params = useParams();
     const id = params.id as string;
@@ -15,7 +17,13 @@ export default function GroupSettingsPage() {
 
     useEffect(() => {
         if (id) {
-            fetchGroup(parseInt(id)).then(setGroup);
+            getToken().then(token => {
+                fetchGroup(parseInt(id), token).then(response => {
+                    if (response.data) {
+                        setGroup(response.data);
+                    }
+                });
+            });
         }
     }, [id]);
 
@@ -25,7 +33,7 @@ export default function GroupSettingsPage() {
 
     return (
         <GroupExpandedView
-            id={group.id}
+            id={group.id.toString()}
             name={group.name}
             memberCount={group.memberCount}
             lastActivity={group.lastActivity}

@@ -12,8 +12,9 @@ import {
 import { DangerZone } from "./sections/danger-zone";
 import { ConfirmationDialog } from "./sections/confirmation-dialog";
 
-import { deleteGroup } from "@/lib/api";
+import { deleteGroup, leaveGroup } from "@/lib/api";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 
 interface GroupSettingsProps {
   id?: string;
@@ -24,6 +25,7 @@ interface GroupSettingsProps {
 type SettingsTab = "general" | "invite" | "activity" | "export" | "danger";
 
 export function GroupSettings({ id, name, memberCount }: GroupSettingsProps) {
+  const { getToken } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<SettingsTab>("general");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -33,13 +35,21 @@ export function GroupSettings({ id, name, memberCount }: GroupSettingsProps) {
 
   const handleConfirmAction = async () => {
     if (confirmAction === "leave") {
-      // Handle leave group logic
-      console.log("Leaving group...");
+      if (id) {
+        try {
+          const token = await getToken();
+          await leaveGroup(parseInt(id), token);
+          window.location.assign("/dashboard");
+        } catch (error) {
+          console.error("Failed to leave group", error);
+        }
+      }
     } else if (confirmAction === "delete") {
       if (id) {
         try {
-          await deleteGroup(parseInt(id));
-          window.location.href = "/dashboard";
+          const token = await getToken();
+          await deleteGroup(parseInt(id), token);
+          window.location.assign("/dashboard");
         } catch (error) {
           console.error("Failed to delete group", error);
         }
