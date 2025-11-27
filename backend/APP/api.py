@@ -74,7 +74,8 @@ class GroupSchema(Schema):
             # Return a human readable string or ISO format
             # For simplicity, returning ISO format, frontend can format it
             return last_expense.created_at.isoformat()
-        return None
+        # Return group creation date as fallback
+        return obj.created_at.isoformat()
 
 class GroupCreateSchema(Schema):
     name: str
@@ -322,6 +323,7 @@ def get_group_analysis(request, group_id: int):
         ).count()
         
         member_details.append({
+            "id": user.id,
             "name": user.name,
             "balance": balances.get(user.name, 0.0),
             "transaction_count": tx_count

@@ -3,7 +3,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -22,11 +21,7 @@ import { IconLoader2 } from "@tabler/icons-react";
 interface CreateGroupDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreateGroup: (
-    name: string,
-    type: string,
-    description: string
-  ) => Promise<void>;
+  onCreateGroup: (name: string, type: string) => Promise<void>;
   creating: boolean;
 }
 
@@ -37,18 +32,14 @@ export function CreateGroupDialog({
   creating,
 }: CreateGroupDialogProps) {
   const [newGroupName, setNewGroupName] = useState("");
-  const [newGroupDescription, setNewGroupDescription] = useState("");
   const [newGroupType, setNewGroupType] = useState("SHORT");
-  const [newGroupMemberLimit, setNewGroupMemberLimit] = useState("");
 
   const handleSubmit = async () => {
     try {
-      await onCreateGroup(newGroupName, newGroupType, newGroupDescription);
+      await onCreateGroup(newGroupName, newGroupType);
       // Reset form
       setNewGroupName("");
-      setNewGroupDescription("");
       setNewGroupType("SHORT");
-      setNewGroupMemberLimit("");
       onOpenChange(false);
     } catch (error) {
       console.error("Failed to create group:", error);
@@ -71,49 +62,16 @@ export function CreateGroupDialog({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Description
-            </label>
-            <Textarea
-              value={newGroupDescription}
-              onChange={(e) => setNewGroupDescription(e.target.value)}
-              placeholder="Enter group description"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Duration</label>
-              <Select value={newGroupType} onValueChange={setNewGroupType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select duration" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="SHORT">Short Term</SelectItem>
-                  <SelectItem value="LONG">Long Term</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">
-                Member Limit
-              </label>
-              <Select
-                value={newGroupMemberLimit}
-                onValueChange={setNewGroupMemberLimit}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select member limit" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="5 members">5 members</SelectItem>
-                  <SelectItem value="10 members">10 members</SelectItem>
-                  <SelectItem value="20 members">20 members</SelectItem>
-                  <SelectItem value="50 members">50 members</SelectItem>
-                  <SelectItem value="100 members">100 members</SelectItem>
-                  <SelectItem value="No Limit">No Limit</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <label className="block text-sm font-medium mb-1">Duration</label>
+            <Select value={newGroupType} onValueChange={setNewGroupType}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select duration" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="SHORT">Short Term</SelectItem>
+                <SelectItem value="LONG">Long Term</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <Button onClick={handleSubmit} className="w-full" disabled={creating}>
             {creating ? (

@@ -41,13 +41,9 @@ export default function DashBoard() {
     return <DashboardError error={error} onSearch={setSearchQuery} />;
   }
 
-  const handleCreateGroup = async (
-    name: string,
-    type: string,
-    description: string
-  ) => {
+  const handleCreateGroup = async (name: string, type: string) => {
     try {
-      await createNewGroup(name, type, description);
+      await createNewGroup(name, type);
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Failed to create group";

@@ -80,7 +80,7 @@ export function GroupCard({
                     netAmount >= 0 ? "text-chart-2" : "text-destructive"
                   }`}
                 >
-                  {netAmount >= 0 ? "+" : ""}
+                  {netAmount >= 0 ? "+" : "-"}
                   {formatIndianRupee(Math.abs(netAmount))}
                 </div>
               </div>

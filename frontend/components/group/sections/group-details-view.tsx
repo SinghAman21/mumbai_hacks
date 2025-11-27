@@ -20,6 +20,7 @@ import {
 import { formatIndianRupee } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PerUserData } from "../per-user-data";
+import { Badge } from "@/components/ui/badge";
 
 interface GroupDetailsViewProps {
   id: string;
@@ -27,6 +28,7 @@ interface GroupDetailsViewProps {
   setActiveTab: (tab: "transactions" | "members") => void;
   token: string | null;
   onExpenseUpdate?: () => void;
+  ownerId?: number | null;
 }
 
 export function GroupDetailsView({
@@ -35,6 +37,7 @@ export function GroupDetailsView({
   setActiveTab,
   token,
   onExpenseUpdate,
+  ownerId,
 }: GroupDetailsViewProps) {
   const [expenses, setExpenses] = React.useState<any[]>([]);
   const [members, setMembers] = React.useState<any[]>([]);
@@ -219,7 +222,7 @@ export function GroupDetailsView({
                     className={`text-lg font-bold ${member.balance >= 0 ? "text-chart-2" : "text-destructive"
                       }`}
                   >
-                    {member.balance >= 0 ? "+" : ""}
+                    {member.balance >= 0 ? "+" : "-"}
                     {formatIndianRupee(Math.abs(member.balance))}
                   </span>
                 </div>
@@ -364,7 +367,14 @@ export function GroupDetailsView({
                         </span>
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-sm">{member.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-sm">{member.name}</p>
+                          {ownerId && member.id === ownerId && (
+                            <Badge variant="secondary" className="text-xs">
+                              Owner
+                            </Badge>
+                          )}
+                        </div>
                         <p className="text-xs text-muted-foreground">Member</p>
                       </div>
                     </div>

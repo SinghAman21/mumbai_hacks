@@ -1,19 +1,17 @@
 "use client";
 
-import { ClerkProvider } from "@clerk/nextjs";
 import { ThemeProvider } from "@/provider/theme-provider";
+import { ClerkThemeWrapper } from "@/components/clerk-theme-wrapper";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ClerkProvider>
-      <ThemeProvider
-        attribute="class"
-        defaultTheme="system"
-        enableSystem
-        disableTransitionOnChange
-      >
-        {children}
-      </ThemeProvider>
-    </ClerkProvider>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <ClerkThemeWrapper>{children}</ClerkThemeWrapper>
+    </ThemeProvider>
   );
 }

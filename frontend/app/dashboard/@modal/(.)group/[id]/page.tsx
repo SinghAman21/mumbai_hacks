@@ -131,7 +131,9 @@ export default function InterceptedGroupPage() {
       <Dialog open={true} onOpenChange={() => router.push("/dashboard")}>
         <DialogContent className="max-w-md">
           <div className="text-center p-6">
-            <DialogTitle className="text-xl font-bold mb-2">Group Not Found</DialogTitle>
+            <DialogTitle className="text-xl font-bold mb-2">
+              Group Not Found
+            </DialogTitle>
             <p className="text-muted-foreground">
               The requested group does not exist.
             </p>
@@ -170,6 +172,7 @@ export default function InterceptedGroupPage() {
       animateInitial={false}
       token={token}
       onExpenseUpdate={refreshGroup}
+      ownerId={group.owner_id}
     />
   );
 }
