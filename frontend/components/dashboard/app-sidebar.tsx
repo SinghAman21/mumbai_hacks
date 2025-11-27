@@ -7,7 +7,7 @@ import {
   SidebarLink,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { IconUsers, IconInfoCircle } from "@tabler/icons-react";
+import { IconUsers, IconInfoCircle, IconReportAnalytics } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { motion } from "motion/react";
 import Image from "next/image";
@@ -21,6 +21,11 @@ export function AppSidebar() {
       label: "Groups",
       href: "/dashboard",
       icon: <IconUsers className="h-5 w-5" />,
+    },
+    {
+      label: "Analysis",
+      href: "/dashboard/analysis",
+      icon: <IconReportAnalytics className="h-5 w-5" />,
     },
     {
       label: "About",
