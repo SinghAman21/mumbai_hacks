@@ -9,6 +9,9 @@ import {
   IconSend,
   IconSettings,
   IconMicrophone,
+  IconCamera,
+  IconX,
+  IconTrash,
 } from "@tabler/icons-react";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -21,6 +24,7 @@ import { formatIndianRupee } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PerUserData } from "../per-user-data";
 import { Badge } from "@/components/ui/badge";
+import { uploadReceipt, deleteExpense } from "@/lib/api";
 
 interface GroupDetailsViewProps {
   id: string;
@@ -45,6 +49,8 @@ export function GroupDetailsView({
   const [isLoading, setIsLoading] = React.useState(false);
   const [membersLoading, setMembersLoading] = React.useState(true);
   const [expensesLoading, setExpensesLoading] = React.useState(true);
+  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
     if (!token) return;
@@ -89,27 +95,39 @@ export function GroupDetailsView({
   }, [id, token]);
 
   const handleSend = async () => {
-    if (!promptValue.trim() || !token) return;
+    if ((!promptValue.trim() && !selectedFile) || !token) return;
     setIsLoading(true);
     try {
-      const res = await fetch(
-        `http://127.0.0.1:8000/api/groups/${id}/expenses/ai`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            text_input: promptValue,
-            user_name: "John Doe",
-          }),
+
+      let newExpense;
+      if (selectedFile) {
+        newExpense = await uploadReceipt(parseInt(id), selectedFile, promptValue, token);
+      } else {
+        const res = await fetch(
+          `http://127.0.0.1:8000/api/groups/${id}/expenses/ai`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              text_input: promptValue,
+              user_name: "John Doe",
+            }),
+          }
+        );
+        if (res.ok) {
+          newExpense = await res.json();
+        } else {
+          throw new Error("Failed to create expense");
         }
-      );
-      if (res.ok) {
-        const newExpense = await res.json();
+      }
+
+      if (newExpense) {
         setExpenses((prev) => [newExpense, ...prev]);
         setPromptValue("");
+        setSelectedFile(null);
 
         // Refresh analysis to update balances
         fetch(`http://127.0.0.1:8000/api/groups/${id}/analysis`, {
@@ -166,6 +184,33 @@ export function GroupDetailsView({
         }
       } else {
         console.error("Failed to respond");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleDelete = async (expenseId: number) => {
+    if (!token) return;
+    try {
+      await deleteExpense(expenseId, token);
+      setExpenses((prev) => prev.filter((ex) => ex.id !== expenseId));
+
+      // Refresh analysis
+      fetch(`http://127.0.0.1:8000/api/groups/${id}/analysis`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.member_details) {
+            setMembers(data.member_details);
+          }
+        });
+
+      if (onExpenseUpdate) {
+        onExpenseUpdate();
       }
     } catch (e) {
       console.error(e);
@@ -229,6 +274,38 @@ export function GroupDetailsView({
               ))
             )}
           </div>
+
+          {selectedFile && (
+            <div className="mb-2 p-2 bg-muted/50 rounded-lg flex items-center justify-between">
+              <div className="flex items-center gap-2 overflow-hidden">
+                <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center shrink-0">
+                  <IconCamera className="w-4 h-4 text-primary" />
+                </div>
+                <span className="text-sm truncate">{selectedFile.name}</span>
+              </div>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 w-6 p-0 rounded-full hover:bg-destructive/10 hover:text-destructive"
+                onClick={() => setSelectedFile(null)}
+              >
+                <IconX className="w-3 h-3" />
+              </Button>
+            </div>
+          )}
+
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/*"
+            onChange={(e) => {
+              if (e.target.files?.[0]) {
+                setSelectedFile(e.target.files[0]);
+              }
+            }}
+          />
+
           <PromptInput
             className="flex items-center shrink-0"
             value={promptValue}
@@ -241,6 +318,16 @@ export function GroupDetailsView({
               <PromptInputAction tooltip="Voice input">
                 <Button size="sm" variant="ghost" className="rounded-full">
                   <IconMicrophone className="w-4 h-4" />
+                </Button>
+              </PromptInputAction>
+              <PromptInputAction tooltip="Scan Receipt">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className={`rounded-full ${selectedFile ? "text-primary bg-primary/10" : ""}`}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <IconCamera className="w-4 h-4" />
                 </Button>
               </PromptInputAction>
               <PromptInputAction tooltip="Send">
@@ -296,7 +383,7 @@ export function GroupDetailsView({
                   expenses.map((expense) => (
                     <div
                       key={expense.id}
-                      className="flex justify-between items-center p-2 rounded-lg hover:bg-muted/50"
+                      className="flex justify-between items-center p-2 rounded-lg hover:bg-muted/50 group"
                     >
                       <div>
                         <div className="flex items-center gap-2">
@@ -349,9 +436,22 @@ export function GroupDetailsView({
                           <p className="text-[10px] text-red-600 mt-1">You rejected</p>
                         )}
                       </div>
-                      <p className="text-lg font-bold text-chart-2">
-                        {formatIndianRupee(expense.amount)}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-lg font-bold text-chart-2">
+                          {formatIndianRupee(expense.amount)}
+                        </p>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(expense.id);
+                          }}
+                        >
+                          <IconTrash className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   ))
                 )}
@@ -392,14 +492,16 @@ export function GroupDetailsView({
           </Button>
         </div>
       </div>
-      {selectedUser && (
-        <PerUserData
-          isOpen={!!selectedUser}
-          onClose={() => setSelectedUser(null)}
-          userName={selectedUser}
-          expenses={expenses}
-        />
-      )}
-    </div>
+      {
+        selectedUser && (
+          <PerUserData
+            isOpen={!!selectedUser}
+            onClose={() => setSelectedUser(null)}
+            userName={selectedUser}
+            expenses={expenses}
+          />
+        )
+      }
+    </div >
   );
 }

@@ -4,6 +4,8 @@ from .models import Group, Expense, ExpenseSplit
 import google.generativeai as genai
 import json
 import os
+import PIL.Image
+import io
 
 genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
 
@@ -91,6 +93,47 @@ def parse_expense_with_ai(text_input, group_id, current_user_name):
     except:
         return None
 
+def parse_receipt_with_ai(image_file, group_id, current_user_name, text_context=None):
+    try:
+        group = Group.objects.get(id=group_id)
+        member_names = ", ".join([u.name for u in group.members.all()])
+        
+        # Get current financial context
+        financials = get_monthly_financials(group_id)
+        balances = financials.get("balances", {})
+        
+        # Format balances for context
+        balance_context = ", ".join([f"{u.name}: {amt:.2f}" for u, amt in balances.items()])
+        
+        model = genai.GenerativeModel("gemini-2.5-flash", generation_config={"response_mime_type": "application/json"})
+        
+        prompt_text = f"""
+        You are a receipt parser. 
+        Context: 
+        - Members: [{member_names}]
+        - Current Balances: [{balance_context}]
+        - Current User: {current_user_name}
+        - Additional Context: {text_context if text_context else "None"}
+        
+        Task: Analyze the receipt image and the additional context to identify Payer, Amount, Description, and Splits.
+        
+        Rules:
+        1. If specific items are visible, try to categorize them.
+        2. If the user provides context like "Dinner for me and Bob", use that to determine splits.
+        3. If no specific split info is found, default to equal splits among all members.
+        4. Payer is likely the Current User unless the receipt or context suggests otherwise.
+        
+        Output JSON: {{ "description": "str", "amount": num, "payer_name": "str", "splits": [{{ "user_name": "str", "amount": num }}] }}
+        """
+        
+        image = PIL.Image.open(image_file)
+        
+        response = model.generate_content([prompt_text, image])
+        return json.loads(response.text)
+    except Exception as e:
+        print(f"Error parsing receipt: {e}")
+        return None
+
 def get_unified_fairness_analysis(group_id):
     financials = get_monthly_financials(group_id)
     if not financials.get("group"):
@@ -172,7 +215,8 @@ def create_expense_from_parsed_data(group_id, parsed_data):
         payer=payer,
         amount=parsed_data['amount'],
         description=parsed_data['description'],
-        category="General" 
+        category="General",
+        status='APPROVED' if members.count() == 1 else 'PENDING'
     )
 
     splits_data = parsed_data.get('splits', [])

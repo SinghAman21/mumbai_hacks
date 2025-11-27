@@ -220,3 +220,42 @@ export async function joinGroup(inviteToken: string, token: string | null): Prom
 
   return response.json();
 }
+
+export async function uploadReceipt(
+  groupId: number,
+  file: File,
+  text: string,
+  token: string | null
+): Promise<Expense> {
+  const formData = new FormData();
+  formData.append("file", file);
+  if (text) {
+    formData.append("text_input", text);
+  }
+
+  const response = await fetch(`${API_URL}/groups/${groupId}/expenses/ocr`, {
+    method: "POST",
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || errorData.error || "Failed to upload receipt");
+  }
+
+  return response.json();
+}
+
+export async function deleteExpense(expenseId: number, token: string) {
+  const response = await fetch(`${API_URL}/expenses/${expenseId}`, {
+    method: "DELETE",
+    headers: await authHeaders(token),
+  });
+  if (!response.ok) {
+    throw new Error("Failed to delete expense");
+  }
+  return response.json();
+}

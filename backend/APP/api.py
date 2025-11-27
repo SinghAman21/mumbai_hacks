@@ -1,4 +1,4 @@
-from ninja import NinjaAPI, Schema
+from ninja import NinjaAPI, Schema, File, UploadedFile, Form
 from typing import List, Optional
 from django.shortcuts import get_object_or_404
 from .models import Group, Expense, User, GroupMember, GroupLog, ExpenseSplit
@@ -253,16 +253,23 @@ def respond_to_expense(request, expense_id: int, payload: ExpenseResponseSchema)
     # If any split is REJECTED, expense is REJECTED (already handled above)
     # If all splits are ACCEPTED, expense is APPROVED
     if expense.status != "REJECTED":
-        # Check if there are any splits that are NOT ACCEPTED
-        # Note: Payer is usually implicitly accepted, but we should check if we create a split for payer?
-        # In create_expense_from_parsed_data, we create splits for everyone involved.
-        # If payer is in splits, they need to accept too? Or we auto-accept for payer?
-        # For now, let's assume everyone in splits must accept.
         if not expense.splits.exclude(status="ACCEPTED").exists():
             expense.status = "APPROVED"
             expense.save()
             
     return {"success": True, "status": split.status, "expense_status": expense.status}
+
+@api.delete("/expenses/{expense_id}")
+def delete_expense(request, expense_id: int):
+    user = request.user
+    expense = get_object_or_404(Expense, id=expense_id)
+    
+    # Check if user is a member of the group
+    if not expense.group.members.filter(id=user.id).exists():
+        return api.create_response(request, {"error": "Not authorized"}, status=403)
+        
+    expense.delete()
+    return {"success": True}
 
 @api.get("/groups/{group_id}/logs", response=List[GroupLogSchema])
 def list_group_logs(request, group_id: int):
@@ -274,7 +281,7 @@ def list_group_logs(request, group_id: int):
 class AIExpenseCreateSchema(Schema):
     text_input: str
 
-from .services import parse_expense_with_ai, create_expense_from_parsed_data
+from .services import parse_expense_with_ai, create_expense_from_parsed_data, parse_receipt_with_ai
 
 @api.post("/groups/{group_id}/expenses/ai", response=ExpenseSchema)
 def create_expense_ai(request, group_id: int, payload: AIExpenseCreateSchema):
@@ -286,6 +293,24 @@ def create_expense_ai(request, group_id: int, payload: AIExpenseCreateSchema):
     parsed = parse_expense_with_ai(payload.text_input, group_id, user.name)
     if not parsed:
          return api.create_response(request, {"error": "Failed to parse"}, status=400)
+    
+    try:
+        expense = create_expense_from_parsed_data(group_id, parsed)
+        return expense
+    except Exception as e:
+        return api.create_response(request, {"error": str(e)}, status=400)
+
+@api.post("/groups/{group_id}/expenses/ocr", response=ExpenseSchema)
+def create_expense_ocr(request, group_id: int, file: UploadedFile = File(...), text_input: str = Form(None)):
+    user = request.user
+    # Verify user is a member of this group
+    group = get_object_or_404(Group, id=group_id, members=user)
+    
+    # Parse receipt with AI
+    parsed = parse_receipt_with_ai(file.file, group_id, user.name, text_context=text_input)
+    
+    if not parsed:
+         return api.create_response(request, {"error": "Failed to parse receipt"}, status=400)
     
     try:
         expense = create_expense_from_parsed_data(group_id, parsed)

@@ -27,9 +27,11 @@ class ClerkAuthenticationMiddleware:
         try:
             from clerk_backend_api import AuthenticateRequestOptions
             options = AuthenticateRequestOptions(secret_key=settings.CLERK_SECRET_KEY)
+            # print(f"DEBUG: Authenticating request {request.path}")
             request_state = self.clerk.authenticate_request(request, options)
             
             if not request_state.is_signed_in:
+                 print(f"DEBUG: Auth failed for {request.path}. Token: {token[:10]}...")
                  return JsonResponse({"error": "Invalid or expired token"}, status=401)
                  
             clerk_user_id = request_state.payload['sub']
