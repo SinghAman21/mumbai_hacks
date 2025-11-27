@@ -7,11 +7,13 @@ import { IconSparkles } from "@tabler/icons-react";
 interface DashboardWelcomeProps {
   userName: string | null | undefined;
   onComplete: () => void;
+  isFirstTime?: boolean;
 }
 
 export function DashboardWelcome({
   userName,
   onComplete,
+  isFirstTime = false,
 }: DashboardWelcomeProps) {
   const [show, setShow] = useState(true);
 
@@ -85,7 +87,7 @@ export function DashboardWelcome({
                 transition={{ delay: 0.3, duration: 0.4 }}
                 className="text-2xl text-neutral-600 dark:text-neutral-400"
               >
-                Welcome back,{" "}
+                {isFirstTime ? "Welcome" : "Welcome back"},{" "}
                 <span className="font-semibold text-blue-600 dark:text-blue-400">
                   {userName || "there"}
                 </span>

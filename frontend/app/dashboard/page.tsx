@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DashHeader from "@/components/dashboard/dash-header";
 import { EmptyGroupsState } from "@/components/group/empty-groups-state";
 import { GroupCard } from "@/components/group/group-card";
@@ -12,16 +12,19 @@ import { GroupsHeader } from "@/components/dashboard/groups-header";
 import { CreateGroupDialog } from "@/components/dashboard/create-group-dialog";
 import { useGroupsData } from "@/hooks/use-groups-data";
 import { useCreateGroup } from "@/hooks/use-create-group";
+import { useWelcomeScreen } from "@/hooks/use-welcome-screen";
 
 export default function DashBoard() {
   const { groups, setGroups, loading, error, isLoaded, user } = useGroupsData();
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(true);
+  const { showWelcome, isFirstTime, setShowWelcome } = useWelcomeScreen({
+    isLoaded,
+    user,
+  });
 
-  const { createNewGroup, creating } = useCreateGroup((newGroup) => {
+  const { createNewGroup } = useCreateGroup((newGroup) => {
     setGroups((prevGroups) => [...prevGroups, newGroup]);
-    alert(`Group "${newGroup.name}" created successfully!`);
   });
 
   if (!isLoaded) {
@@ -33,6 +36,7 @@ export default function DashBoard() {
       <DashboardWelcome
         userName={user?.firstName}
         onComplete={() => setShowWelcome(false)}
+        isFirstTime={isFirstTime}
       />
     );
   }
@@ -105,7 +109,6 @@ export default function DashBoard() {
         open={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         onCreateGroup={handleCreateGroup}
-        creating={creating}
       />
     </div>
   );

@@ -24,6 +24,7 @@ import { formatIndianRupee } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PerUserData } from "../per-user-data";
 import { Badge } from "@/components/ui/badge";
+import { useSpeechToText } from "@/hooks/speechtotext";
 import { uploadReceipt, deleteExpense } from "@/lib/api";
 
 interface GroupDetailsViewProps {
@@ -49,6 +50,7 @@ export function GroupDetailsView({
   const [isLoading, setIsLoading] = React.useState(false);
   const [membersLoading, setMembersLoading] = React.useState(true);
   const [expensesLoading, setExpensesLoading] = React.useState(true);
+  const { isListening, startListening } = useSpeechToText();
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -316,8 +318,19 @@ export function GroupDetailsView({
             <PromptInputTextarea placeholder="Log a new transaction..." />
             <PromptInputActions>
               <PromptInputAction tooltip="Voice input">
-                <Button size="sm" variant="ghost" className="rounded-full">
-                  <IconMicrophone className="w-4 h-4" />
+                <Button
+                  size="sm"
+                  variant={isListening ? "default" : "ghost"}
+                  className="rounded-full"
+                  onClick={() =>
+                    startListening((spokenText: any) => {
+                      setPromptValue((prev: any) => (prev ? prev + " " + spokenText : spokenText));
+                    })
+                  }
+                >
+                  <IconMicrophone
+                    className={`w-4 h-4 ${isListening ? "animate-pulse text-red-500" : ""}`}
+                  />
                 </Button>
               </PromptInputAction>
               <PromptInputAction tooltip="Scan Receipt">

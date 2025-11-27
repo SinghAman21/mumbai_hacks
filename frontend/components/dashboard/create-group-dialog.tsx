@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Button as StatefulButton } from "@/components/ui/stateful-button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -16,20 +17,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { IconLoader2 } from "@tabler/icons-react";
 
 interface CreateGroupDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreateGroup: (name: string, type: string) => Promise<void>;
-  creating: boolean;
 }
 
 export function CreateGroupDialog({
   open,
   onOpenChange,
   onCreateGroup,
-  creating,
 }: CreateGroupDialogProps) {
   const [newGroupName, setNewGroupName] = useState("");
   const [newGroupType, setNewGroupType] = useState("SHORT");
@@ -73,16 +71,9 @@ export function CreateGroupDialog({
               </SelectContent>
             </Select>
           </div>
-          <Button onClick={handleSubmit} className="w-full" disabled={creating}>
-            {creating ? (
-              <>
-                <IconLoader2 className="w-4 h-4 mr-2 animate-spin" />
-                Creating...
-              </>
-            ) : (
-              "Create Group"
-            )}
-          </Button>
+          <StatefulButton onClick={handleSubmit} className="w-full">
+            Create Group
+          </StatefulButton>
         </div>
       </DialogContent>
     </Dialog>

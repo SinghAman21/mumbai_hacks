@@ -122,14 +122,14 @@ export function InviteSettings({ id }: InviteSettingsProps) {
           <div className="space-y-1">
             <h4 className="text-sm font-medium">Temporary Invite Link</h4>
             <p className="text-xs text-muted-foreground">
-              Valid for 10 minutes. Anyone with this link can join.
+              Expires in 10 minutes. Anyone with the link can join.
             </p>
           </div>
           <Button onClick={handleGenerateLink} disabled={loading}>
             {loading ? (
-              <IconLoader2 className="w-4 h-4 animate-spin mr-2" />
+              <IconLoader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <IconLink className="w-4 h-4 mr-2" />
+              <IconLink className="w-4 h-4" />
             )}
             Generate Link
           </Button>
