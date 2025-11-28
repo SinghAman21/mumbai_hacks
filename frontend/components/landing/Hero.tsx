@@ -2,9 +2,20 @@
 
 import React from "react";
 import { motion } from "motion/react";
-import { IconSparkles, IconUsers, IconChartBar } from "@tabler/icons-react";
+import {
+  IconSparkles,
+  IconUsers,
+  IconChartBar,
+  IconScissors,
+  IconRefresh,
+  IconScale,
+  IconBolt,
+  IconMessage,
+} from "@tabler/icons-react";
 import { BackgroundBeamsWithCollision } from "@/components/ui/background-beams-with-collision";
+import { EncryptedText } from "@/components/ui/encrypted-text";
 import Image from "next/image";
+import Link from "next/link";
 
 export function Hero() {
   return (
@@ -21,14 +32,14 @@ export function Hero() {
             <div className="h-12 w-12 relative rounded-full overflow-hidden bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
               <Image
                 src="/logo.png"
-                alt="SplitSphere Logo"
+                alt="SpendSplit Logo"
                 fill
                 className="object-contain scale-110 dark:brightness-75"
                 priority
               />
             </div>
             <span className="text-xl font-bold text-neutral-900 dark:text-white">
-              SplitSphere
+              SpendSplit
             </span>
           </div>
         </motion.div>
@@ -41,13 +52,21 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="space-y-4"
           >
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-neutral-900 dark:text-white">
-              Who Owes What?
+            <div className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight">
+              <EncryptedText
+                text="Who Owes What?"
+                revealedClassName="text-neutral-900 dark:text-white"
+                revealDelayMs={100}
+                flipDelayMs={100}
+              />
               <br />
-              <span className="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                We Know.
-              </span>
-            </h1>
+              <EncryptedText
+                text="We Know."
+                revealedClassName="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+                revealDelayMs={100}
+                flipDelayMs={100}
+              />
+            </div>
             <p className="text-lg sm:text-xl text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto leading-relaxed">
               Eliminate confusion and disputes. Automatically track, split, and
               simplify shared expenses for groups with AI-powered intelligence.
@@ -61,9 +80,11 @@ export function Hero() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="flex flex-col sm:flex-row gap-4 justify-center items-center"
           >
-            <button className="px-8 py-3 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg font-medium hover:scale-105 transition-transform duration-200 shadow-lg">
-              Get Started
-            </button>
+            <Link href="/sign-up">
+              <button className="px-8 py-3 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg font-medium hover:scale-105 transition-transform duration-200 shadow-lg">
+                Get Started
+              </button>
+            </Link>
             <button className="px-8 py-3 border-2 border-neutral-900 dark:border-white text-neutral-900 dark:text-white rounded-lg font-medium hover:scale-105 transition-transform duration-200">
               Know More
             </button>
@@ -112,32 +133,32 @@ function FeaturesSection() {
     {
       title: "Clear Tracking",
       description: "Know exactly who paid for what, with transparent records",
-      icon: "📊",
+      icon: <IconChartBar className="w-8 h-8" />,
     },
     {
       title: "Auto Splitting",
       description: "Accurate cost division with smart algorithms",
-      icon: "✂️",
+      icon: <IconScissors className="w-8 h-8" />,
     },
     {
       title: "Debt Simplification",
       description: "Minimize transactions with automatic debt optimization",
-      icon: "🔄",
+      icon: <IconRefresh className="w-8 h-8" />,
     },
     {
       title: "Fairness AI",
       description: "AI suggestions to prevent spending imbalance",
-      icon: "⚖️",
+      icon: <IconScale className="w-8 h-8" />,
     },
     {
       title: "Real-time Sync",
       description: "All members see updates instantly",
-      icon: "⚡",
+      icon: <IconBolt className="w-8 h-8" />,
     },
     {
       title: "Natural Language",
       description: "Describe expenses naturally, AI understands",
-      icon: "💬",
+      icon: <IconMessage className="w-8 h-8" />,
     },
   ];
 
@@ -151,7 +172,7 @@ function FeaturesSection() {
     >
       <div className="text-center space-y-4 mb-12">
         <h2 className="text-3xl sm:text-4xl font-bold text-neutral-900 dark:text-white">
-          Why Choose SplitSphere?
+          Why Choose SpendSplit?
         </h2>
         <p className="text-neutral-600 dark:text-neutral-400">
           Making shared expenses simple, fair, and transparent
@@ -168,7 +189,7 @@ function FeaturesSection() {
             viewport={{ once: true }}
             className="p-6 bg-neutral-50 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-800 rounded-xl hover:shadow-lg transition-shadow duration-200"
           >
-            <div className="text-4xl mb-4">{feature.icon}</div>
+            <div className="mb-4">{feature.icon}</div>
             <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
               {feature.title}
             </h3>

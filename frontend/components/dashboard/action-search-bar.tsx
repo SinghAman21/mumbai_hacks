@@ -37,7 +37,7 @@ export function ActionSearchBar({ onSearch }: ActionSearchBarProps) {
           placeholder="Search groups..."
           value={query}
           onChange={handleChange}
-          className="pl-9 pr-4 w-full"
+          className="pl-9 pr-4 w-full rounded-full"
         />
       </div>
     </form>

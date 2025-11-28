@@ -1,206 +1,163 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import DashHeader from "@/components/dashboard/dash-header";
 import { EmptyGroupsState } from "@/components/group/empty-groups-state";
 import { GroupCard } from "@/components/group/group-card";
 import { CardSkeleton } from "@/components/skeletons/card-skeleton";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { IconPlus } from "@tabler/icons-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { createGroup, fetchGroups, Group } from "@/lib/api";
+import { DashboardError } from "@/components/dashboard/dashboard-error";
+import { DashboardWelcome } from "@/components/dashboard/dashboard-welcome";
+import { GroupsHeader } from "@/components/dashboard/groups-header";
+import { CreateGroupDialog } from "@/components/dashboard/create-group-dialog";
+import { GroupActionStatus } from "@/components/group/group-action-status";
+import { GroupExpandedView } from "@/components/group/group-expanded-view";
+import { useGroupsData } from "@/hooks/use-groups-data";
+import { useCreateGroup } from "@/hooks/use-create-group";
+import { useWelcomeScreen } from "@/hooks/use-welcome-screen";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 
-export default function DashBoard() {
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  // Search state
+function DashboardContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { getToken } = useAuth();
+  const { groups, setGroups, loading, error, isLoaded, user } = useGroupsData();
   const [searchQuery, setSearchQuery] = useState("");
-
-  // Dialog state
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  // Form state
-  const [newGroupName, setNewGroupName] = useState("");
-  const [newGroupDescription, setNewGroupDescription] = useState("");
-  const [newGroupType, setNewGroupType] = useState("SHORT");
-  const [newGroupMemberLimit, setNewGroupMemberLimit] = useState("");
+  const { showWelcome, isFirstTime, setShowWelcome } = useWelcomeScreen({
+    isLoaded,
+    user,
+  });
+  const [actionStatus, setActionStatus] = useState<{
+    status: "loading" | "success" | "error";
+    action: "leave" | "delete";
+    message: string;
+  } | null>(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"transactions" | "members">(
+    "transactions"
+  );
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        const data = await fetchGroups();
-        setGroups(data);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load groups");
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
+    getToken().then(setToken);
+  }, [getToken]);
 
-  if (error) return <div>{error}</div>;
+  const { createNewGroup } = useCreateGroup((newGroup) => {
+    setGroups((prevGroups) => [...prevGroups, newGroup]);
+  });
 
-  const handleCreateGroup = async () => {
-    if (!newGroupName) return; // Basic validation
-    try {
-      const newGroup = await createGroup({
-        name: newGroupName,
-        type: newGroupType,
+  useEffect(() => {
+    const status = searchParams.get("actionStatus") as
+      | "success"
+      | "error"
+      | null;
+    const action = searchParams.get("actionType") as "leave" | "delete" | null;
+    const message = searchParams.get("actionMessage");
+
+    if (status && action && message) {
+      // Show loading first
+      setActionStatus({
+        status: "loading",
+        action,
+        message: action === "leave" ? "Leaving group..." : "Deleting group...",
       });
-      setGroups((prevGroups) => [...prevGroups, newGroup]); // Add new group to the list
-      // Reset form and close dialog
-      setNewGroupName("");
-      setNewGroupDescription("");
-      setNewGroupType("SHORT");
-      setIsDialogOpen(false);
+
+      // Clean URL
+      router.replace("/dashboard");
+
+      // Then show success or error
+      setTimeout(() => {
+        setActionStatus({
+          status,
+          action,
+          message: decodeURIComponent(message),
+        });
+
+        // If success, reload after 2 seconds
+        if (status === "success") {
+          setTimeout(() => {
+            window.location.reload();
+          }, 2000);
+        }
+      }, 500);
+    }
+  }, [searchParams, router]);
+
+  if (!isLoaded) {
+    return null;
+  }
+
+  if (showWelcome && isLoaded) {
+    return (
+      <DashboardWelcome
+        userName={user?.firstName}
+        onComplete={() => setShowWelcome(false)}
+        isFirstTime={isFirstTime}
+      />
+    );
+  }
+
+  if (error) {
+    return <DashboardError error={error} onSearch={setSearchQuery} />;
+  }
+
+  const handleCreateGroup = async (name: string, type: string) => {
+    try {
+      await createNewGroup(name, type);
     } catch (error) {
-      console.error("Failed to create group:", error);
-      // Optionally, show an error message to the user
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to create group";
+      alert(errorMessage);
     }
   };
-  // Filter groups based on a search query
+
+  const handleCreateGroupFromEmptyState = async (
+    name: string,
+    duration: string
+  ) => {
+    try {
+      await createNewGroup(name, duration);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to create group";
+      alert(errorMessage);
+    }
+  };
+
   const filteredGroups = groups.filter((group) =>
     group.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
+      {actionStatus && (
+        <div className="fixed inset-0 z-100 bg-background">
+          <GroupActionStatus
+            status={actionStatus.status}
+            action={actionStatus.action}
+            message={actionStatus.message}
+            onGoBack={() => setActionStatus(null)}
+          />
+        </div>
+      )}
       <DashHeader onSearch={setSearchQuery} />
       <main className="flex-1 overflow-auto p-6">
         {groups.length === 0 && !loading ? (
           <div className="flex items-center justify-center h-full">
-            <EmptyGroupsState />
+            <EmptyGroupsState onCreate={handleCreateGroupFromEmptyState} />
           </div>
         ) : (
-          /* Groups list */
           <div className="max-w-6xl mx-auto space-y-6">
-            <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
-                Groups
-              </h1>
-              <div className="flex items-center gap-4">
-                <div className="text-sm text-neutral-600 dark:text-neutral-400">
-                  {loading ? (
-                    <Skeleton className="h-4 w-16" />
-                  ) : (
-                    `${filteredGroups.length} groups`
-                  )}
-                </div>
-                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <IconPlus className="w-4 h-4 mr-2" />
-                      New
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Create New Group</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-1">
-                          Group Name
-                        </label>
-                        <Input
-                          value={newGroupName}
-                          onChange={(e) => setNewGroupName(e.target.value)}
-                          placeholder="Enter group name"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">
-                          Description
-                        </label>
-                        <Textarea
-                          value={newGroupDescription}
-                          onChange={(e) =>
-                            setNewGroupDescription(e.target.value)
-                          }
-                          placeholder="Enter group description"
-                        />
-                      </div>
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-1">
-                            Duration
-                          </label>
-                          <Select
-                            value={newGroupType}
-                            onValueChange={setNewGroupType}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select duration" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="SHORT">Short Term</SelectItem>
-                              <SelectItem value="LONG">Long Term</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-1">
-                            Member Limit
-                          </label>
-                          <Select
-                            value={newGroupMemberLimit}
-                            onValueChange={setNewGroupMemberLimit}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select member limit" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="5 members">
-                                5 members
-                              </SelectItem>
-                              <SelectItem value="10 members">
-                                10 members
-                              </SelectItem>
-                              <SelectItem value="20 members">
-                                20 members
-                              </SelectItem>
-                              <SelectItem value="50 members">
-                                50 members
-                              </SelectItem>
-                              <SelectItem value="100 members">
-                                100 members
-                              </SelectItem>
-                              <SelectItem value="No Limit">No Limit</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                      <Button onClick={handleCreateGroup} className="w-full">
-                        Create Group
-                      </Button>
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            </div>
+            <GroupsHeader
+              groupCount={filteredGroups.length}
+              loading={loading}
+              onCreateClick={() => setIsDialogOpen(true)}
+            />
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {loading
-                ? Array.from({ length: 6 }).map((_, index) => (
+                ? Array.from({ length: 4 }).map((_, index) => (
                     <CardSkeleton key={`skeleton-${index}`} />
                   ))
                 : filteredGroups.map((group) => (
@@ -208,12 +165,61 @@ export default function DashBoard() {
                       key={group.id}
                       {...group}
                       id={group.id.toString()}
+                      onClick={() => setSelectedGroupId(group.id.toString())}
                     />
                   ))}
             </div>
           </div>
         )}
       </main>
+
+      {selectedGroupId && (
+        <GroupExpandedView
+          id={selectedGroupId}
+          name={
+            groups.find((g) => g.id.toString() === selectedGroupId)?.name || ""
+          }
+          memberCount={
+            groups.find((g) => g.id.toString() === selectedGroupId)
+              ?.memberCount || 0
+          }
+          lastActivity={
+            groups.find((g) => g.id.toString() === selectedGroupId)
+              ?.lastActivity || ""
+          }
+          active={true}
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onClose={() => setSelectedGroupId(null)}
+          animateInitial={true}
+          token={token}
+          onExpenseUpdate={() => {}}
+          ownerId={
+            groups.find((g) => g.id.toString() === selectedGroupId)?.owner_id ||
+            null
+          }
+        />
+      )}
+
+      <CreateGroupDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        onCreateGroup={handleCreateGroup}
+      />
     </div>
+  );
+}
+
+export default function DashBoard() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center h-screen">
+          Loading...
+        </div>
+      }
+    >
+      <DashboardContent />
+    </Suspense>
   );
 }

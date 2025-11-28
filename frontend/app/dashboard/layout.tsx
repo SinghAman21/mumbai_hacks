@@ -8,9 +8,9 @@ export default function DashboardLayout({
   modal: React.ReactNode;
 }) {
   return (
-    <div className="flex h-screen w-full">
-      <AppSidebar userEmail="user@example.com" />
-      <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="h-screen w-full">
+      <AppSidebar />
+      <div className="flex flex-col overflow-hidden">
         {children}
         {modal}
       </div>

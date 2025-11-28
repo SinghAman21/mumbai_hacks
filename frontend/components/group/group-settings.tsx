@@ -12,31 +12,72 @@ import {
 import { DangerZone } from "./sections/danger-zone";
 import { ConfirmationDialog } from "./sections/confirmation-dialog";
 
+import { deleteGroup, leaveGroup } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
+
 interface GroupSettingsProps {
   id?: string;
   name?: string;
   memberCount?: number;
+  onActionStart?: (action: "leave" | "delete") => void;
 }
 
 type SettingsTab = "general" | "invite" | "activity" | "export" | "danger";
 
-export function GroupSettings({ id, name, memberCount }: GroupSettingsProps) {
+export function GroupSettings({
+  id,
+  name,
+  memberCount,
+  onActionStart,
+}: GroupSettingsProps) {
+  const { getToken } = useAuth();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<SettingsTab>("general");
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirmAction, setConfirmAction] = useState<"leave" | "delete" | null>(
     null
   );
 
-  const handleConfirmAction = () => {
-    if (confirmAction === "leave") {
-      // Handle leave group logic
-      console.log("Leaving group...");
-    } else if (confirmAction === "delete") {
-      // Handle delete group logic
-      console.log("Deleting group...");
-    }
+  const handleConfirmAction = async () => {
+    if (!confirmAction || !id) return;
+
     setShowConfirmDialog(false);
+    const action = confirmAction;
     setConfirmAction(null);
+
+    // Close modal immediately
+    router.back();
+
+    // Small delay to let modal close, then perform action
+    setTimeout(async () => {
+      try {
+        const token = await getToken();
+
+        if (action === "leave") {
+          await leaveGroup(parseInt(id), token);
+          // Success - navigate with status
+          router.push(
+            "/dashboard?actionStatus=success&actionType=leave&actionMessage=Successfully+left+the+group!"
+          );
+        } else if (action === "delete") {
+          await deleteGroup(parseInt(id), token);
+          // Success - navigate with status
+          router.push(
+            "/dashboard?actionStatus=success&actionType=delete&actionMessage=Successfully+deleted+the+group!"
+          );
+        }
+      } catch (error: any) {
+        console.error(`Failed to ${action} group`, error);
+        const errorMessage =
+          error.message || `Failed to ${action} group. Please try again.`;
+        router.push(
+          `/dashboard?actionStatus=error&actionType=${action}&actionMessage=${encodeURIComponent(
+            errorMessage
+          )}`
+        );
+      }
+    }, 300);
   };
 
   const openConfirmDialog = (action: "leave" | "delete") => {
@@ -47,13 +88,13 @@ export function GroupSettings({ id, name, memberCount }: GroupSettingsProps) {
   const renderTabContent = () => {
     switch (activeTab) {
       case "general":
-        return <GeneralSettings name={name} />;
+        return <GeneralSettings id={id} name={name} />;
       case "invite":
         return <InviteSettings id={id} />;
       case "activity":
-        return <ActivitySettings />;
+        return <ActivitySettings id={id} />;
       case "export":
-        return <ExportSettings />;
+        return <ExportSettings id={id} />;
       case "danger":
         return (
           <DangerZone
@@ -62,7 +103,7 @@ export function GroupSettings({ id, name, memberCount }: GroupSettingsProps) {
           />
         );
       default:
-        return <GeneralSettings name={name} />;
+        return <GeneralSettings id={id} name={name} />;
     }
   };
 

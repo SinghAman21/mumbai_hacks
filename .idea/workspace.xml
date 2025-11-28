@@ -4,7 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="646dd0a7-2f6f-42a5-b90b-2a8f6ba0bf46" name="Changes" comment="modified .gitignore" />
+    <list default="true" id="646dd0a7-2f6f-42a5-b90b-2a8f6ba0bf46" name="Changes" comment="auth setup">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -20,6 +22,7 @@
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="HARD" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
   &quot;lastFilter&quot;: {
@@ -33,6 +36,9 @@
     &quot;accountId&quot;: &quot;82494d12-31cb-497b-9a6b-b4cea92f8d9b&quot;
   }
 }</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 3
 }</component>
@@ -47,7 +53,7 @@
     "RunOnceActivity.OpenDjangoStructureViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "tempmain",
+    "git-widget-placeholder": "auth-tanishq",
     "last_opened_file_path": "C:/Users/sumed/Desktop/Python Projects/Integration/frontend",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -57,7 +63,7 @@
     "settings.editor.selected.configurable": "com.intellij.python.django.customization.DjangoModulesConfigurable",
     "vue.rearranger.settings.migration": "true"
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\sumed\Desktop\Python Projects\Integration\frontend" />
@@ -108,6 +114,7 @@
       <updated>1764076592773</updated>
       <workItem from="1764076594123" duration="1284000" />
       <workItem from="1764078413724" duration="372000" />
+      <workItem from="1764167321120" duration="371000" />
     </task>
     <task id="LOCAL-00001" summary="integrated groups, members, transactions with backend">
       <option name="closed" value="true" />
@@ -125,15 +132,35 @@
       <option name="project" value="LOCAL" />
       <updated>1764078155395</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="auth setup">
+      <option name="closed" value="true" />
+      <created>1764167613827</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1764167613827</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="integrated groups, members, transactions with backend" />
     <MESSAGE value="modified .gitignore" />
-    <option name="LAST_COMMIT_MESSAGE" value="modified .gitignore" />
+    <MESSAGE value="auth setup" />
+    <option name="LAST_COMMIT_MESSAGE" value="auth setup" />
   </component>
 </project>

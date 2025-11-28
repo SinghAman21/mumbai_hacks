@@ -1,0 +1,13 @@
+django
+django-cors-headers
+django-ninja
+clerk-backend-api
+google-generativeai
+python-dotenv
+psycopg2-binary
+PyJWT
+Pillow
+requests
+
+
+
