@@ -11,9 +11,53 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import DashHeader from "@/components/dashboard/dash-header";
+import { useAuth } from "@clerk/nextjs";
+import { fetchGroups, fetchGroupExpenses } from "@/lib/api";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AnalysisPage() {
+  const { getToken } = useAuth();
   const [selectedMonth, setSelectedMonth] = React.useState("november");
+  const [expensesData, setExpensesData] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    async function loadData() {
+      try {
+        const token = await getToken();
+        if (!token) return;
+
+        // Fetch all groups
+        const { data: groups } = await fetchGroups(token);
+        if (!groups || groups.length === 0) {
+          setLoading(false);
+          return;
+        }
+
+        // Fetch expenses from all groups
+        const allExpenses = await Promise.all(
+          groups.map(async (group) => {
+            try {
+              const expenses = await fetchGroupExpenses(group.id, token);
+              return expenses;
+            } catch {
+              return [];
+            }
+          })
+        );
+
+        // Flatten and combine all expenses
+        const combinedExpenses = allExpenses.flat();
+        setExpensesData(combinedExpenses);
+      } catch (error) {
+        console.error("Error loading expenses:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
+  }, [getToken]);
 
   const months = [
     { value: "january", label: "January" },
@@ -69,8 +113,17 @@ export default function AnalysisPage() {
           </div>
 
           <div className="grid gap-6">
-            <ChartAreaInteractive />
-            <ChartPieLabelList />
+            {loading ? (
+              <>
+                <Skeleton className="h-[400px] w-full" />
+                <Skeleton className="h-[500px] w-full" />
+              </>
+            ) : (
+              <>
+                <ChartAreaInteractive expenses={expensesData} />
+                <ChartPieLabelList expenses={expensesData} />
+              </>
+            )}
           </div>
         </div>
       </main>

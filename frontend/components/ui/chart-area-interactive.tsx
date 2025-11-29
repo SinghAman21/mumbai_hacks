@@ -28,99 +28,21 @@ import {
 
 export const description = "An interactive area chart";
 
-const chartData = [
-  { date: "2024-04-01", received: 222, spend: 150 },
-  { date: "2024-04-02", received: 97, spend: 180 },
-  { date: "2024-04-03", received: 167, spend: 120 },
-  { date: "2024-04-04", received: 242, spend: 260 },
-  { date: "2024-04-05", received: 373, spend: 290 },
-  { date: "2024-04-06", received: 301, spend: 340 },
-  { date: "2024-04-07", received: 245, spend: 180 },
-  { date: "2024-04-08", received: 409, spend: 320 },
-  { date: "2024-04-09", received: 59, spend: 110 },
-  { date: "2024-04-10", received: 261, spend: 190 },
-  { date: "2024-04-11", received: 327, spend: 350 },
-  { date: "2024-04-12", received: 292, spend: 210 },
-  { date: "2024-04-13", received: 342, spend: 380 },
-  { date: "2024-04-14", received: 137, spend: 220 },
-  { date: "2024-04-15", received: 120, spend: 170 },
-  { date: "2024-04-16", received: 138, spend: 190 },
-  { date: "2024-04-17", received: 446, spend: 360 },
-  { date: "2024-04-18", received: 364, spend: 410 },
-  { date: "2024-04-19", received: 243, spend: 180 },
-  { date: "2024-04-20", received: 89, spend: 150 },
-  { date: "2024-04-21", received: 137, spend: 200 },
-  { date: "2024-04-22", received: 224, spend: 170 },
-  { date: "2024-04-23", received: 138, spend: 230 },
-  { date: "2024-04-24", received: 387, spend: 290 },
-  { date: "2024-04-25", received: 215, spend: 250 },
-  { date: "2024-04-26", received: 75, spend: 130 },
-  { date: "2024-04-27", received: 383, spend: 420 },
-  { date: "2024-04-28", received: 122, spend: 180 },
-  { date: "2024-04-29", received: 315, spend: 240 },
-  { date: "2024-04-30", received: 454, spend: 380 },
-  { date: "2024-05-01", received: 165, spend: 220 },
-  { date: "2024-05-02", received: 293, spend: 310 },
-  { date: "2024-05-03", received: 247, spend: 190 },
-  { date: "2024-05-04", received: 385, spend: 420 },
-  { date: "2024-05-05", received: 481, spend: 390 },
-  { date: "2024-05-06", received: 498, spend: 520 },
-  { date: "2024-05-07", received: 388, spend: 300 },
-  { date: "2024-05-08", received: 149, spend: 210 },
-  { date: "2024-05-09", received: 227, spend: 180 },
-  { date: "2024-05-10", received: 293, spend: 330 },
-  { date: "2024-05-11", received: 335, spend: 270 },
-  { date: "2024-05-12", received: 197, spend: 240 },
-  { date: "2024-05-13", received: 197, spend: 160 },
-  { date: "2024-05-14", received: 448, spend: 490 },
-  { date: "2024-05-15", received: 473, spend: 380 },
-  { date: "2024-05-16", received: 338, spend: 400 },
-  { date: "2024-05-17", received: 499, spend: 420 },
-  { date: "2024-05-18", received: 315, spend: 350 },
-  { date: "2024-05-19", received: 235, spend: 180 },
-  { date: "2024-05-20", received: 177, spend: 230 },
-  { date: "2024-05-21", received: 82, spend: 140 },
-  { date: "2024-05-22", received: 81, spend: 120 },
-  { date: "2024-05-23", received: 252, spend: 290 },
-  { date: "2024-05-24", received: 294, spend: 220 },
-  { date: "2024-05-25", received: 201, spend: 250 },
-  { date: "2024-05-26", received: 213, spend: 170 },
-  { date: "2024-05-27", received: 420, spend: 460 },
-  { date: "2024-05-28", received: 233, spend: 190 },
-  { date: "2024-05-29", received: 78, spend: 130 },
-  { date: "2024-05-30", received: 340, spend: 280 },
-  { date: "2024-05-31", received: 178, spend: 230 },
-  { date: "2024-06-01", received: 178, spend: 200 },
-  { date: "2024-06-02", received: 470, spend: 410 },
-  { date: "2024-06-03", received: 103, spend: 160 },
-  { date: "2024-06-04", received: 439, spend: 380 },
-  { date: "2024-06-05", received: 88, spend: 140 },
-  { date: "2024-06-06", received: 294, spend: 250 },
-  { date: "2024-06-07", received: 323, spend: 370 },
-  { date: "2024-06-08", received: 385, spend: 320 },
-  { date: "2024-06-09", received: 438, spend: 480 },
-  { date: "2024-06-10", received: 155, spend: 200 },
-  { date: "2024-06-11", received: 92, spend: 150 },
-  { date: "2024-06-12", received: 492, spend: 420 },
-  { date: "2024-06-13", received: 81, spend: 130 },
-  { date: "2024-06-14", received: 426, spend: 380 },
-  { date: "2024-06-15", received: 307, spend: 350 },
-  { date: "2024-06-16", received: 371, spend: 310 },
-  { date: "2024-06-17", received: 475, spend: 520 },
-  { date: "2024-06-18", received: 107, spend: 170 },
-  { date: "2024-06-19", received: 341, spend: 290 },
-  { date: "2024-06-20", received: 408, spend: 450 },
-  { date: "2024-06-21", received: 169, spend: 210 },
-  { date: "2024-06-22", received: 317, spend: 270 },
-  { date: "2024-06-23", received: 480, spend: 530 },
-  { date: "2024-06-24", received: 132, spend: 180 },
-  { date: "2024-06-25", received: 141, spend: 190 },
-  { date: "2024-06-26", received: 434, spend: 380 },
-  { date: "2024-06-27", received: 448, spend: 490 },
-  { date: "2024-06-28", received: 149, spend: 200 },
-  { date: "2024-06-29", received: 103, spend: 160 },
-  { date: "2024-06-30", received: 446, spend: 400 },
-];
+interface Expense {
+  id: string;
+  amount: number;
+  description: string;
+  category: string;
+  payer: {
+    name: string;
+    id: string;
+  };
+  created_at: string;
+}
+
+interface ChartAreaInteractiveProps {
+  expenses: Expense[];
+}
 
 const chartConfig = {
   received: {
@@ -133,19 +55,51 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function ChartAreaInteractive() {
-  const [timeRange, setTimeRange] = React.useState("30d"); // default 30 days
+export function ChartAreaInteractive({ expenses }: ChartAreaInteractiveProps) {
+  const [timeRange, setTimeRange] = React.useState("30d");
 
-  const filteredData = chartData.filter((item) => {
-    const date = new Date(item.date);
-    const referenceDate = new Date("2024-06-30"); // last date in dataset
+  // Transform expenses into chart data
+  const chartData = React.useMemo(() => {
+    if (!expenses || expenses.length === 0) return [];
 
+    // Group expenses by date
+    const dataByDate: Record<string, { received: number; spend: number }> = {};
+
+    expenses.forEach((expense) => {
+      const date = new Date(expense.created_at).toISOString().split("T")[0];
+      if (!dataByDate[date]) {
+        dataByDate[date] = { received: 0, spend: 0 };
+      }
+
+      // Assuming positive amounts are "received" and we track all as spend
+      // You may need to adjust this logic based on your business rules
+      if (expense.amount > 0) {
+        dataByDate[date].spend += expense.amount;
+      }
+    });
+
+    // Convert to array and sort by date
+    return Object.entries(dataByDate)
+      .map(([date, values]) => ({
+        date,
+        ...values,
+      }))
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }, [expenses]);
+
+  const filteredData = React.useMemo(() => {
+    if (chartData.length === 0) return [];
+
+    const now = new Date();
     const daysToSubtract = timeRange === "7d" ? 7 : 30;
-    const startDate = new Date(referenceDate);
+    const startDate = new Date(now);
     startDate.setDate(startDate.getDate() - daysToSubtract);
 
-    return date >= startDate;
-  });
+    return chartData.filter((item) => {
+      const date = new Date(item.date);
+      return date >= startDate;
+    });
+  }, [chartData, timeRange]);
 
   return (
     <Card className="pt-0">
