@@ -1,4 +1,4 @@
-# Mumbai Hacks Project
+# SpendSplit
 
 This repository contains the source code for the Mumbai Hacks project, featuring a Django backend integrated with Supabase and a Next.js frontend with modern UI components.
 
