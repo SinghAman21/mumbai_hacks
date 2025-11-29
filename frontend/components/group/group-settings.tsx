@@ -20,7 +20,9 @@ interface GroupSettingsProps {
   id?: string;
   name?: string;
   memberCount?: number;
+  minFloor?: number;
   onActionStart?: (action: "leave" | "delete") => void;
+  isOwner?: boolean;
 }
 
 type SettingsTab = "general" | "invite" | "activity" | "export" | "danger";
@@ -29,7 +31,9 @@ export function GroupSettings({
   id,
   name,
   memberCount,
+  minFloor,
   onActionStart,
+  isOwner,
 }: GroupSettingsProps) {
   const { getToken } = useAuth();
   const router = useRouter();
@@ -88,7 +92,7 @@ export function GroupSettings({
   const renderTabContent = () => {
     switch (activeTab) {
       case "general":
-        return <GeneralSettings id={id} name={name} />;
+        return <GeneralSettings id={id} name={name} minFloor={minFloor} />;
       case "invite":
         return <InviteSettings id={id} />;
       case "activity":
@@ -100,10 +104,11 @@ export function GroupSettings({
           <DangerZone
             onLeaveGroup={() => openConfirmDialog("leave")}
             onDeleteGroup={() => openConfirmDialog("delete")}
+            isOwner={isOwner}
           />
         );
       default:
-        return <GeneralSettings id={id} name={name} />;
+        return <GeneralSettings id={id} name={name} minFloor={minFloor} />;
     }
   };
 

@@ -3,8 +3,6 @@
 import React from "react";
 import { motion } from "motion/react";
 import {
-  IconSparkles,
-  IconUsers,
   IconChartBar,
   IconScissors,
   IconRefresh,
@@ -13,14 +11,16 @@ import {
   IconMessage,
 } from "@tabler/icons-react";
 import { BackgroundBeamsWithCollision } from "@/components/ui/background-beams-with-collision";
-import { EncryptedText } from "@/components/ui/encrypted-text";
+import { HeroGeometric } from "@/components/ui/shape-landing-hero";
+import { TypewriterEffect } from "@/components/ui/typewriter-effect";
 import Image from "next/image";
 import Link from "next/link";
 
 export function Hero() {
   return (
-    <BackgroundBeamsWithCollision className="min-h-screen w-full pb-20">
-      <div className="relative z-10 flex flex-col items-center justify-start pt-32 px-4 sm:px-6 lg:px-8 w-full">
+    <div>
+      {/* First Section with Shape Landing Hero */}
+      <div className="relative">
         {/* Logo & Theme Toggle */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -44,86 +44,35 @@ export function Hero() {
           </div>
         </motion.div>
 
-        {/* Hero Content */}
-        <div className="max-w-5xl mx-auto text-center space-y-8 py-20">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="space-y-4"
-          >
-            <div className="text-5xl sm:text-6xl lg:text-7xl font-bold tracking-tight">
-              <EncryptedText
-                text="Who Owes What?"
-                revealedClassName="text-neutral-900 dark:text-white"
-                revealDelayMs={100}
-                flipDelayMs={100}
-              />
-              <br />
-              <EncryptedText
-                text="We Know."
-                revealedClassName="bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-                revealDelayMs={100}
-                flipDelayMs={100}
-              />
-            </div>
-            <p className="text-lg sm:text-xl text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto leading-relaxed">
-              Eliminate confusion and disputes. Automatically track, split, and
-              simplify shared expenses for groups with AI-powered intelligence.
-            </p>
-          </motion.div>
+        <HeroGeometric title1="Who Owes What?" title2="We Know." />
 
-          {/* CTA Buttons */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center"
-          >
-            <Link href="/sign-up">
-              <button className="px-8 py-3 bg-neutral-900 dark:bg-white text-white dark:text-neutral-900 rounded-lg font-medium hover:scale-105 transition-transform duration-200 shadow-lg">
-                Get Started
-              </button>
-            </Link>
-            <button className="px-8 py-3 border-2 border-neutral-900 dark:border-white text-neutral-900 dark:text-white rounded-lg font-medium hover:scale-105 transition-transform duration-200">
-              Know More
+        {/* CTA Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+          className="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex flex-col sm:flex-row gap-4 justify-center items-center z-10"
+        >
+          <Link href="/sign-up">
+            <button className="px-8 py-3 bg-white text-black rounded-lg font-medium hover:scale-105 transition-transform duration-200 shadow-lg">
+              Get Started
             </button>
-          </motion.div>
+          </Link>
+          <button className="px-8 py-3 border-2 border-white text-white rounded-lg font-medium hover:scale-105 transition-transform duration-200">
+            Know More
+          </button>
+        </motion.div>
 
-          {/* Feature Pills */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-            className="flex flex-wrap gap-4 justify-center pt-8"
-          >
-            <FeaturePill
-              icon={<IconSparkles className="w-4 h-4" />}
-              text="AI-Powered"
-            />
-            <FeaturePill
-              icon={<IconUsers className="w-4 h-4" />}
-              text="Group Friendly"
-            />
-            <FeaturePill
-              icon={<IconChartBar className="w-4 h-4" />}
-              text="Smart Analytics"
-            />
-          </motion.div>
-        </div>
-
-        {/* Features Section */}
-        <FeaturesSection />
+        {/* Smooth Gradient Transition */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-linear-to-b from-transparent to-neutral-50 dark:to-neutral-950 z-5 pointer-events-none" />
       </div>
-    </BackgroundBeamsWithCollision>
-  );
-}
 
-function FeaturePill({ icon, text }: { icon: React.ReactNode; text: string }) {
-  return (
-    <div className="flex items-center gap-2 px-4 py-2 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-full text-sm text-neutral-700 dark:text-neutral-300">
-      {icon}
-      <span>{text}</span>
+      {/* Second Section with Background Beams */}
+      <div className="relative -mt-1">
+        <BackgroundBeamsWithCollision className="min-h-screen w-full pb-20">
+          <FeaturesSection />
+        </BackgroundBeamsWithCollision>
+      </div>
     </div>
   );
 }
@@ -171,9 +120,10 @@ function FeaturesSection() {
       className="w-full max-w-6xl mx-auto py-20 px-4"
     >
       <div className="text-center space-y-4 mb-12">
-        <h2 className="text-3xl sm:text-4xl font-bold text-neutral-900 dark:text-white">
-          Why Choose SpendSplit?
-        </h2>
+        <TypewriterEffect
+          words={[{ text: "Why" }, { text: "Choose" }, { text: "SpendSplit?" }]}
+          className="text-3xl sm:text-4xl font-bold text-neutral-900 dark:text-white"
+        />
         <p className="text-neutral-600 dark:text-neutral-400">
           Making shared expenses simple, fair, and transparent
         </p>
@@ -187,15 +137,21 @@ function FeaturesSection() {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: index * 0.1 }}
             viewport={{ once: true }}
-            className="p-6 bg-neutral-50 dark:bg-neutral-900/50 border border-neutral-200 dark:border-neutral-800 rounded-xl hover:shadow-lg transition-shadow duration-200"
+            className="group relative"
           >
-            <div className="mb-4">{feature.icon}</div>
-            <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2">
-              {feature.title}
-            </h3>
-            <p className="text-neutral-600 dark:text-neutral-400 text-sm">
-              {feature.description}
-            </p>
+            <div className="absolute -inset-0.5 bg-linear-to-r from-indigo-500 via-purple-500 to-rose-500 rounded-xl blur opacity-0 group-hover:opacity-75 transition duration-500" />
+            <div className="relative p-6 bg-neutral-50 dark:bg-neutral-900/90 backdrop-blur-xl border border-neutral-200 dark:border-neutral-800 rounded-xl hover:border-neutral-300 dark:hover:border-neutral-700 transition-all duration-300 h-full">
+              <div className="text-center">
+                <div className="mb-4 flex justify-center">
+                  <div className="p-3 rounded-lg bg-linear-to-br from-indigo-500/10 to-rose-500/10 dark:from-indigo-500/20 dark:to-rose-500/20 group-hover:scale-110 transition-transform duration-300">
+                    {feature.icon}
+                  </div>
+                </div>
+                <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-2 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-300">
+                  {feature.title}
+                </h3>
+              </div>
+            </div>
           </motion.div>
         ))}
       </div>

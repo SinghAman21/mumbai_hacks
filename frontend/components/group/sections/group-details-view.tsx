@@ -8,11 +8,17 @@ import {
   IconPlus,
   IconSend,
   IconSettings,
-  IconMicrophone,
   IconCamera,
   IconX,
   IconTrash,
+  IconAlertCircle,
 } from "@tabler/icons-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
 import {
   PromptInput,
@@ -24,7 +30,6 @@ import { formatIndianRupee } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PerUserData } from "../per-user-data";
 import { Badge } from "@/components/ui/badge";
-import { useSpeechToText } from "@/hooks/speechtotext";
 import { uploadReceipt, deleteExpense } from "@/lib/api";
 
 interface GroupDetailsViewProps {
@@ -50,7 +55,6 @@ export function GroupDetailsView({
   const [isLoading, setIsLoading] = React.useState(false);
   const [membersLoading, setMembersLoading] = React.useState(true);
   const [expensesLoading, setExpensesLoading] = React.useState(true);
-  const { isListening, startListening } = useSpeechToText();
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
@@ -158,34 +162,35 @@ export function GroupDetailsView({
     }
   };
 
-  const handleRespond = async (
-    expenseId: number,
-    action: "ACCEPT" | "REJECT"
-  ) => {
+
+
+  const handleDispute = async (expenseId: number) => {
     if (!token) return;
+    const reason = prompt("Please enter a reason for the dispute:");
+    if (!reason) return;
+
     try {
       const res = await fetch(
-        `http://127.0.0.1:8000/api/expenses/${expenseId}/respond`,
+        `http://127.0.0.1:8000/api/expenses/${expenseId}/dispute`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ action }),
+          body: JSON.stringify({ reason }),
         }
       );
+
       if (res.ok) {
-        const data = await res.json();
-        // Update local state
         setExpenses((prev) =>
           prev.map((ex) => {
             if (ex.id === expenseId) {
               return {
                 ...ex,
-                user_approval_status:
-                  action === "ACCEPT" ? "ACCEPTED" : "REJECTED",
-                status: data.expense_status,
+                status: "DISPUTED",
+                dispute_reason: reason,
+                user_approval_status: "DISPUTED",
               };
             }
             return ex;
@@ -195,7 +200,7 @@ export function GroupDetailsView({
           onExpenseUpdate();
         }
       } else {
-        console.error("Failed to respond");
+        console.error("Failed to dispute");
       }
     } catch (e) {
       console.error(e);
@@ -328,26 +333,6 @@ export function GroupDetailsView({
           >
             <PromptInputTextarea placeholder="Log a new transaction..." />
             <PromptInputActions>
-              <PromptInputAction tooltip="Voice input">
-                <Button
-                  size="sm"
-                  variant={isListening ? "default" : "ghost"}
-                  className="rounded-full"
-                  onClick={() =>
-                    startListening((spokenText: any) => {
-                      setPromptValue((prev: any) =>
-                        prev ? prev + " " + spokenText : spokenText
-                      );
-                    })
-                  }
-                >
-                  <IconMicrophone
-                    className={`w-4 h-4 ${
-                      isListening ? "animate-pulse text-red-500" : ""
-                    }`}
-                  />
-                </Button>
-              </PromptInputAction>
               <PromptInputAction tooltip="Scan Receipt">
                 <Button
                   size="sm"
@@ -435,41 +420,41 @@ export function GroupDetailsView({
                               Pending
                             </span>
                           )}
+                          {expense.status === "DISPUTED" && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <span className="text-[10px] bg-orange-500/10 text-orange-500 px-1.5 py-0.5 rounded-full font-medium flex items-center gap-1 cursor-help">
+                                    <IconAlertCircle className="w-3 h-3" />
+                                    Disputed
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Reason: {expense.dispute_reason}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
                         </div>
                         <p className="text-xs text-muted-foreground">
                           Paid by {expense.payer.name}
                         </p>
-                        {expense.user_approval_status === "PENDING" &&
-                          expense.status !== "REJECTED" && (
+                        {expense.user_approval_status !== "REJECTED" &&
+                          expense.status !== "REJECTED" &&
+                          expense.status !== "DISPUTED" && (
                             <div className="flex gap-2 mt-2">
+
                               <Button
                                 size="sm"
-                                variant="outline"
-                                className="h-6 text-xs border-green-500/20 hover:bg-green-500/10 hover:text-green-600 text-green-600"
-                                onClick={() =>
-                                  handleRespond(expense.id, "ACCEPT")
-                                }
+                                variant="ghost"
+                                className="h-6 text-xs text-muted-foreground hover:text-orange-500 px-0"
+                                onClick={() => handleDispute(expense.id)}
                               >
-                                Accept
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-6 text-xs border-red-500/20 hover:bg-red-500/10 hover:text-red-600 text-red-600"
-                                onClick={() =>
-                                  handleRespond(expense.id, "REJECT")
-                                }
-                              >
-                                Reject
+                                Dispute
                               </Button>
                             </div>
                           )}
-                        {expense.user_approval_status === "ACCEPTED" &&
-                          expense.status === "PENDING" && (
-                            <p className="text-[10px] text-green-600 mt-1">
-                              You accepted
-                            </p>
-                          )}
+
                         {expense.user_approval_status === "REJECTED" && (
                           <p className="text-[10px] text-red-600 mt-1">
                             You rejected

@@ -12,6 +12,7 @@ interface GroupExpandedViewProps {
   name: string;
   memberCount: number;
   lastActivity: string;
+  minFloor?: number;
   active: boolean;
   activeTab: "transactions" | "members";
   setActiveTab: (tab: "transactions" | "members") => void;
@@ -22,6 +23,7 @@ interface GroupExpandedViewProps {
   token?: string | null;
   onExpenseUpdate?: () => void;
   ownerId?: number | null;
+  isOwner?: boolean;
 }
 
 export function GroupExpandedView({
@@ -29,6 +31,7 @@ export function GroupExpandedView({
   name,
   memberCount,
   lastActivity,
+  minFloor,
   active,
   activeTab,
   setActiveTab,
@@ -39,6 +42,7 @@ export function GroupExpandedView({
   token = null,
   onExpenseUpdate,
   ownerId,
+  isOwner,
 }: GroupExpandedViewProps) {
   const id_unique = useId();
 
@@ -96,7 +100,13 @@ export function GroupExpandedView({
 
             {/* in this section the settings page and the transactions page will be displayed */}
             {view === "settings" ? (
-              <GroupSettings id={id} name={name} memberCount={memberCount} />
+              <GroupSettings
+                id={id}
+                name={name}
+                memberCount={memberCount}
+                minFloor={minFloor}
+                isOwner={isOwner}
+              />
             ) : (
               <GroupDetailsView
                 id={id}

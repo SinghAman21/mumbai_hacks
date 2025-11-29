@@ -23,6 +23,7 @@ class ExpenseSchema(Schema):
     payer: UserSchema
     created_at: datetime
     status: str
+    dispute_reason: Optional[str] = None
     user_approval_status: Optional[str] = None
 
 class GroupLogSchema(Schema):
@@ -36,12 +37,21 @@ class GroupSchema(Schema):
     name: str
     type: str
     owner_id: Optional[int] = None
+    min_floor: float = 2000.00
     totalTransactions: int = 0
     approvedTransactions: int = 0
     pendingTransactions: int = 0
     netAmount: float = 0.0
     memberCount: int = 0
     lastActivity: Optional[str] = None
+    is_owner: bool = False
+
+    @staticmethod
+    def resolve_is_owner(obj, context):
+        request = context.get('request')
+        if request and request.user:
+            return obj.owner == request.user
+        return False
 
     @staticmethod
     def resolve_totalTransactions(obj):
@@ -84,6 +94,7 @@ class GroupCreateSchema(Schema):
 class GroupUpdateSchema(Schema):
     name: Optional[str] = None
     type: Optional[str] = None
+    min_floor: Optional[float] = None
 
 @api.get("/groups", response=List[GroupSchema])
 def list_groups(request):
@@ -209,6 +220,7 @@ class ExpenseSchema(Schema):
     payer: UserSchema
     created_at: datetime
     status: str
+    dispute_reason: Optional[str] = None
     user_approval_status: Optional[str] = None
 
 class ExpenseResponseSchema(Schema):
@@ -238,9 +250,7 @@ def respond_to_expense(request, expense_id: int, payload: ExpenseResponseSchema)
     except ExpenseSplit.DoesNotExist:
         return api.create_response(request, {"error": "User not involved in this expense"}, status=400)
     
-    if payload.action == "ACCEPT":
-        split.status = "ACCEPTED"
-    elif payload.action == "REJECT":
+    if payload.action == "REJECT":
         split.status = "REJECTED"
         expense.status = "REJECTED"
         expense.save()
@@ -248,25 +258,42 @@ def respond_to_expense(request, expense_id: int, payload: ExpenseResponseSchema)
         return api.create_response(request, {"error": "Invalid action"}, status=400)
     
     split.save()
-    
-    # Check if all splits are accepted
-    # If any split is REJECTED, expense is REJECTED (already handled above)
-    # If all splits are ACCEPTED, expense is APPROVED
-    if expense.status != "REJECTED":
-        if not expense.splits.exclude(status="ACCEPTED").exists():
-            expense.status = "APPROVED"
-            expense.save()
             
     return {"success": True, "status": split.status, "expense_status": expense.status}
+
+class DisputeSchema(Schema):
+    reason: str
+
+@api.post("/expenses/{expense_id}/dispute")
+def dispute_expense(request, expense_id: int, payload: DisputeSchema):
+    user = request.user
+    expense = get_object_or_404(Expense, id=expense_id)
+    
+    # Check if user is involved
+    try:
+        split = ExpenseSplit.objects.get(expense=expense, user=user)
+    except ExpenseSplit.DoesNotExist:
+        return api.create_response(request, {"error": "User not involved in this expense"}, status=400)
+        
+    # Update split status
+    split.status = "DISPUTED"
+    split.save()
+    
+    # Update expense status and reason
+    expense.status = "DISPUTED"
+    expense.dispute_reason = payload.reason
+    expense.save()
+    
+    return {"success": True, "status": "DISPUTED"}
 
 @api.delete("/expenses/{expense_id}")
 def delete_expense(request, expense_id: int):
     user = request.user
     expense = get_object_or_404(Expense, id=expense_id)
     
-    # Check if user is a member of the group
-    if not expense.group.members.filter(id=user.id).exists():
-        return api.create_response(request, {"error": "Not authorized"}, status=403)
+    # Check if user is the payer
+    if expense.payer != user:
+        return api.create_response(request, {"error": "Only the payer can delete this expense"}, status=403)
         
     expense.delete()
     return {"success": True}

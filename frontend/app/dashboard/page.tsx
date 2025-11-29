@@ -187,6 +187,10 @@ function DashboardContent() {
             groups.find((g) => g.id.toString() === selectedGroupId)
               ?.lastActivity || ""
           }
+          minFloor={
+            groups.find((g) => g.id.toString() === selectedGroupId)
+              ?.min_floor || 2000
+          }
           active={true}
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -197,6 +201,9 @@ function DashboardContent() {
           ownerId={
             groups.find((g) => g.id.toString() === selectedGroupId)?.owner_id ||
             null
+          }
+          isOwner={
+            groups.find((g) => g.id.toString() === selectedGroupId)?.is_owner
           }
         />
       )}
