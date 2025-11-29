@@ -14,18 +14,31 @@ import {
   IconLink,
   IconCheck,
 } from "@tabler/icons-react";
-import { updateGroup, fetchGroupExpenses, fetchGroupLogs, Expense, GroupLog, generateInviteLink } from "@/lib/api";
+import {
+  updateGroup,
+  fetchGroupExpenses,
+  fetchGroupLogs,
+  Expense,
+  GroupLog,
+  generateInviteLink,
+} from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
 import { useAuth } from "@clerk/nextjs";
 
 interface GeneralSettingsProps {
   id?: string;
   name?: string;
+  minFloor?: number;
 }
 
-export function GeneralSettings({ id, name: initialName }: GeneralSettingsProps) {
+export function GeneralSettings({
+  id,
+  name: initialName,
+  minFloor: initialMinFloor,
+}: GeneralSettingsProps) {
   const { getToken } = useAuth();
   const [name, setName] = useState(initialName || "");
+  const [minFloor, setMinFloor] = useState(initialMinFloor || 2000);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -35,7 +48,7 @@ export function GeneralSettings({ id, name: initialName }: GeneralSettingsProps)
     setSuccess(false);
     try {
       const token = await getToken();
-      await updateGroup(parseInt(id), { name }, token);
+      await updateGroup(parseInt(id), { name, min_floor: minFloor }, token);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 2000);
     } catch (error) {
@@ -63,6 +76,22 @@ export function GeneralSettings({ id, name: initialName }: GeneralSettingsProps)
             onChange={(e) => setName(e.target.value)}
             placeholder="Enter group name"
           />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="minFloor">
+            Minimum limit to ignore fairness calculations
+          </Label>
+          <Input
+            id="minFloor"
+            type="number"
+            value={minFloor}
+            onChange={(e) => setMinFloor(parseInt(e.target.value) || 2000)}
+            placeholder="2000"
+            min="0"
+          />
+          <p className="text-sm text-muted-foreground">
+            Expenses below this amount will be ignored in fairness calculations.
+          </p>
         </div>
       </div>
       <div className="flex justify-end items-center gap-2">
@@ -201,9 +230,7 @@ export function ActivitySettings({ id }: ActivitySettingsProps) {
                 <IconActivity className="w-4 h-4 text-primary" />
               </div>
               <div>
-                <p className="text-sm font-medium">
-                  {log.details}
-                </p>
+                <p className="text-sm font-medium">{log.details}</p>
                 <p className="text-xs text-muted-foreground">
                   {formatDistanceToNow(new Date(log.created_at), {
                     addSuffix: true,
@@ -234,7 +261,8 @@ export function ExportSettings({ id }: ExportSettingsProps) {
         expenses
           .map(
             (e) =>
-              `${new Date(e.created_at).toLocaleDateString()},"${e.description
+              `${new Date(e.created_at).toLocaleDateString()},"${
+                e.description
               }",${e.amount},"${e.payer.name}","${e.category}"`
           )
           .join("\n");

@@ -68,7 +68,7 @@ def parse_expense_with_ai(text_input, group_id, current_user_name):
         
         model = genai.GenerativeModel("gemini-2.5-flash", generation_config={"response_mime_type": "application/json"})
         prompt = f"""
-        You are an expense parser. 
+        You are an expense parser.
         Context: 
         - Members: [{member_names}]
         - Current Balances (Positive = Owed to them, Negative = They owe): [{balance_context}]
@@ -76,7 +76,7 @@ def parse_expense_with_ai(text_input, group_id, current_user_name):
         
         Input: "{text_input}"
         
-        Task: Identify Payer, Amount, Splits.
+        Task: Translate if not in English, Identify Payer, Amount, Splits, Categorize according to the list [Food, Transportation, Entertainment, Miscellaneous, Supplies, Bills.]
         
         Special Logic:
         - If the user says "I paid back all my debts" or similar:
@@ -86,7 +86,7 @@ def parse_expense_with_ai(text_input, group_id, current_user_name):
             4. Distribute the payment to those positive balance users proportionally or fully if it matches.
             5. If their balance is positive or zero, return amount 0.
         
-        Output JSON: {{ "description": "str", "amount": num, "payer_name": "str", "splits": [{{ "user_name": "str", "amount": num }}] }}
+        Output JSON: {{ "description": "str", "amount": num, "payer_name": "str", "splits": [{{ "user_name": "str", "amount": num }}], category: choose one from [Food, Transportation, Entertainment, Miscellaneous, Supplies, Bills.] }}
         """
         response = model.generate_content(prompt)
         return json.loads(response.text)
@@ -115,7 +115,7 @@ def parse_receipt_with_ai(image_file, group_id, current_user_name, text_context=
         - Current User: {current_user_name}
         - Additional Context: {text_context if text_context else "None"}
         
-        Task: Analyze the receipt image and the additional context to identify Payer, Amount, Description, and Splits.
+        Task: Analyze the receipt image and the additional context to identify Payer, Amount, Description, and Splits Categorize according to the list [Food, Transportation, Entertainment, Miscellaneous, Supplies, Bills.].
         
         Rules:
         1. If specific items are visible, try to categorize them.
@@ -123,7 +123,7 @@ def parse_receipt_with_ai(image_file, group_id, current_user_name, text_context=
         3. If no specific split info is found, default to equal splits among all members.
         4. Payer is likely the Current User unless the receipt or context suggests otherwise.
         
-        Output JSON: {{ "description": "str", "amount": num, "payer_name": "str", "splits": [{{ "user_name": "str", "amount": num }}] }}
+        Output JSON: {{ "description": "str", "amount": num, "payer_name": "str", "splits": [{{ "user_name": "str", "amount": num }}], category: "str" }}
         """
         
         image = PIL.Image.open(image_file)
@@ -215,8 +215,8 @@ def create_expense_from_parsed_data(group_id, parsed_data):
         payer=payer,
         amount=parsed_data['amount'],
         description=parsed_data['description'],
-        category="General",
-        status='APPROVED' if members.count() == 1 else 'PENDING'
+        category=parsed_data['category'],
+        status='APPROVED'
     )
 
     splits_data = parsed_data.get('splits', [])
@@ -239,7 +239,7 @@ def create_expense_from_parsed_data(group_id, parsed_data):
                 expense=expense,
                 user=user,
                 owed_amount=split['amount'],
-                status='ACCEPTED' if user == payer else 'PENDING'
+                status='ACCEPTED'
             )
     
     return expense

@@ -39,6 +39,7 @@ export default function GroupSettingsPage() {
       name={group.name}
       memberCount={group.memberCount}
       lastActivity={group.lastActivity}
+      minFloor={group.min_floor}
       active={true}
       activeTab={activeTab}
       setActiveTab={setActiveTab}

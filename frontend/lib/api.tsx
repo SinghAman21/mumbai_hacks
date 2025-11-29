@@ -2,6 +2,7 @@ export interface Group {
   id: number;
   name: string;
   type: string;
+  min_floor: number;
   totalTransactions: number;
   approvedTransactions: number;
   pendingTransactions: number;
@@ -9,11 +10,13 @@ export interface Group {
   memberCount: number;
   lastActivity: string;
   owner_id?: number;
+  is_owner?: boolean;
 }
 
 export interface GroupCreate {
   name: string;
   type: string;
+  min_floor?: number;
 }
 
 const API_URL = "http://localhost:8000/api";
@@ -154,6 +157,9 @@ export interface Expense {
     id: number;
   };
   created_at: string;
+  status: string;
+  dispute_reason?: string;
+  user_approval_status?: string;
 }
 
 export interface GroupLog {

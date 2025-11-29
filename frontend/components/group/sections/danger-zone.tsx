@@ -8,9 +8,14 @@ import { IconLogout, IconTrash } from "@tabler/icons-react";
 interface DangerZoneProps {
   onLeaveGroup: () => void;
   onDeleteGroup: () => void;
+  isOwner?: boolean;
 }
 
-export function DangerZone({ onLeaveGroup, onDeleteGroup }: DangerZoneProps) {
+export function DangerZone({
+  onLeaveGroup,
+  onDeleteGroup,
+  isOwner,
+}: DangerZoneProps) {
   return (
     <div className="space-y-6">
       <div>
@@ -25,24 +30,18 @@ export function DangerZone({ onLeaveGroup, onDeleteGroup }: DangerZoneProps) {
           <div>
             <h3 className="font-medium text-destructive">Leave Group</h3>
             <p className="text-sm text-muted-foreground">
-              You will lose access to this group.
+              {isOwner
+                ? "Since you are the owner, leaving will delete the group."
+                : "You will lose access to this group."}
             </p>
           </div>
-          <Button variant="destructive" size="sm" onClick={onLeaveGroup}>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={isOwner ? onDeleteGroup : onLeaveGroup}
+          >
             <IconLogout className="w-4 h-4 mr-2" />
             Leave
-          </Button>
-        </div>
-        <div className="flex items-center justify-between p-4 border border-destructive/20 bg-destructive/5 rounded-lg">
-          <div>
-            <h3 className="font-medium text-destructive">Delete Group</h3>
-            <p className="text-sm text-muted-foreground">
-              Permanently delete this group and all data.
-            </p>
-          </div>
-          <Button variant="destructive" size="sm" onClick={onDeleteGroup}>
-            <IconTrash className="w-4 h-4 mr-2" />
-            Delete
           </Button>
         </div>
       </div>
