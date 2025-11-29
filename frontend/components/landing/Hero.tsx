@@ -44,12 +44,7 @@ export function Hero() {
           </div>
         </motion.div>
 
-        <HeroGeometric
-          badge=""
-          title1="Who Owes What?"
-          title2="We Know."
-          description="Eliminate confusion and disputes. Automatically track, split, and simplify shared expenses for groups with AI-powered intelligence."
-        />
+        <HeroGeometric title1="Who Owes What?" title2="We Know." />
 
         {/* CTA Buttons */}
         <motion.div

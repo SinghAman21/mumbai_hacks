@@ -75,24 +75,17 @@ function HeroGeometric({
   badge = "Design Collective",
   title1 = "Elevate Your Digital Vision",
   title2 = "Crafting Exceptional Websites",
-  description = "Crafting exceptional digital experiences through innovative design and cutting-edge technology.",
 }: {
   badge?: string;
   title1?: string;
   title2?: string;
-  description?: string;
 }) {
   const fadeUpVariants = {
     hidden: { opacity: 0, y: 30 },
-    visible: (i: number) => ({
+    visible: {
       opacity: 1,
       y: 0,
-      transition: {
-        duration: 1,
-        delay: 0.5 + i * 0.2,
-        ease: [0.25, 0.4, 0.25, 1],
-      },
-    }),
+    },
   };
 
   return (
@@ -148,21 +141,6 @@ function HeroGeometric({
 
       <div className="relative z-10 container mx-auto px-4 md:px-6">
         <div className="max-w-3xl mx-auto text-center">
-          {badge && (
-            <motion.div
-              custom={0}
-              variants={fadeUpVariants}
-              initial="hidden"
-              animate="visible"
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/3 border border-white/8 mb-8 md:mb-12"
-            >
-              <Circle className="h-2 w-2 fill-rose-500/80" />
-              <span className="text-sm text-white/60 tracking-wide">
-                {badge}
-              </span>
-            </motion.div>
-          )}
-
           <motion.div
             custom={1}
             variants={fadeUpVariants}
@@ -191,7 +169,8 @@ function HeroGeometric({
             animate="visible"
           >
             <p className="text-base sm:text-lg md:text-xl text-white/40 mb-8 leading-relaxed font-light tracking-wide max-w-xl mx-auto px-4">
-              {description}
+              Crafting exceptional digital experiences through innovative design
+              and cutting-edge technology.
             </p>
           </motion.div>
         </div>
