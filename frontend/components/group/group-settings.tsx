@@ -21,6 +21,7 @@ interface GroupSettingsProps {
   name?: string;
   memberCount?: number;
   onActionStart?: (action: "leave" | "delete") => void;
+  isOwner?: boolean;
 }
 
 type SettingsTab = "general" | "invite" | "activity" | "export" | "danger";
@@ -30,6 +31,7 @@ export function GroupSettings({
   name,
   memberCount,
   onActionStart,
+  isOwner,
 }: GroupSettingsProps) {
   const { getToken } = useAuth();
   const router = useRouter();
@@ -100,6 +102,7 @@ export function GroupSettings({
           <DangerZone
             onLeaveGroup={() => openConfirmDialog("leave")}
             onDeleteGroup={() => openConfirmDialog("delete")}
+            isOwner={isOwner}
           />
         );
       default:

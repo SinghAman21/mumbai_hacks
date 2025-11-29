@@ -12,7 +12,14 @@ import {
   IconCamera,
   IconX,
   IconTrash,
+  IconAlertCircle,
 } from "@tabler/icons-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Separator } from "@/components/ui/separator";
 import {
   PromptInput,
@@ -202,6 +209,49 @@ export function GroupDetailsView({
     }
   };
 
+  const handleDispute = async (expenseId: number) => {
+    if (!token) return;
+    const reason = prompt("Please enter a reason for the dispute:");
+    if (!reason) return;
+
+    try {
+      const res = await fetch(
+        `http://127.0.0.1:8000/api/expenses/${expenseId}/dispute`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ reason }),
+        }
+      );
+
+      if (res.ok) {
+        setExpenses((prev) =>
+          prev.map((ex) => {
+            if (ex.id === expenseId) {
+              return {
+                ...ex,
+                status: "DISPUTED",
+                dispute_reason: reason,
+                user_approval_status: "DISPUTED",
+              };
+            }
+            return ex;
+          })
+        );
+        if (onExpenseUpdate) {
+          onExpenseUpdate();
+        }
+      } else {
+        console.error("Failed to dispute");
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const handleDelete = async (expenseId: number) => {
     if (!token) return;
     try {
@@ -276,9 +326,8 @@ export function GroupDetailsView({
                     </div>
                   </div>
                   <span
-                    className={`text-lg font-bold ${
-                      member.balance >= 0 ? "text-chart-2" : "text-destructive"
-                    }`}
+                    className={`text-lg font-bold ${member.balance >= 0 ? "text-chart-2" : "text-destructive"
+                      }`}
                   >
                     {member.balance >= 0 ? "+" : "-"}
                     {formatIndianRupee(Math.abs(member.balance))}
@@ -342,9 +391,8 @@ export function GroupDetailsView({
                   }
                 >
                   <IconMicrophone
-                    className={`w-4 h-4 ${
-                      isListening ? "animate-pulse text-red-500" : ""
-                    }`}
+                    className={`w-4 h-4 ${isListening ? "animate-pulse text-red-500" : ""
+                      }`}
                   />
                 </Button>
               </PromptInputAction>
@@ -352,9 +400,8 @@ export function GroupDetailsView({
                 <Button
                   size="sm"
                   variant="ghost"
-                  className={`rounded-full ${
-                    selectedFile ? "text-primary bg-primary/10" : ""
-                  }`}
+                  className={`rounded-full ${selectedFile ? "text-primary bg-primary/10" : ""
+                    }`}
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <IconCamera className="w-4 h-4" />
@@ -435,41 +482,48 @@ export function GroupDetailsView({
                               Pending
                             </span>
                           )}
+                          {expense.status === "DISPUTED" && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger>
+                                  <span className="text-[10px] bg-orange-500/10 text-orange-500 px-1.5 py-0.5 rounded-full font-medium flex items-center gap-1 cursor-help">
+                                    <IconAlertCircle className="w-3 h-3" />
+                                    Disputed
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Reason: {expense.dispute_reason}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
                         </div>
                         <p className="text-xs text-muted-foreground">
                           Paid by {expense.payer.name}
                         </p>
-                        {expense.user_approval_status === "PENDING" &&
-                          expense.status !== "REJECTED" && (
+                        {expense.user_approval_status !== "REJECTED" &&
+                          expense.status !== "REJECTED" &&
+                          expense.status !== "DISPUTED" && (
                             <div className="flex gap-2 mt-2">
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="h-6 text-xs border-green-500/20 hover:bg-green-500/10 hover:text-green-600 text-green-600"
-                                onClick={() =>
-                                  handleRespond(expense.id, "ACCEPT")
-                                }
-                              >
-                                Accept
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
                                 className="h-6 text-xs border-red-500/20 hover:bg-red-500/10 hover:text-red-600 text-red-600"
-                                onClick={() =>
-                                  handleRespond(expense.id, "REJECT")
-                                }
+                                onClick={() => handleRespond(expense.id, "REJECT")}
                               >
                                 Reject
                               </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 text-xs text-muted-foreground hover:text-orange-500 px-0"
+                                onClick={() => handleDispute(expense.id)}
+                              >
+                                Dispute
+                              </Button>
                             </div>
                           )}
-                        {expense.user_approval_status === "ACCEPTED" &&
-                          expense.status === "PENDING" && (
-                            <p className="text-[10px] text-green-600 mt-1">
-                              You accepted
-                            </p>
-                          )}
+
                         {expense.user_approval_status === "REJECTED" && (
                           <p className="text-[10px] text-red-600 mt-1">
                             You rejected
@@ -534,14 +588,16 @@ export function GroupDetailsView({
           </Button>
         </div>
       </div>
-      {selectedUser && (
-        <PerUserData
-          isOpen={!!selectedUser}
-          onClose={() => setSelectedUser(null)}
-          userName={selectedUser}
-          expenses={expenses}
-        />
-      )}
-    </div>
+      {
+        selectedUser && (
+          <PerUserData
+            isOpen={!!selectedUser}
+            onClose={() => setSelectedUser(null)}
+            userName={selectedUser}
+            expenses={expenses}
+          />
+        )
+      }
+    </div >
   );
 }

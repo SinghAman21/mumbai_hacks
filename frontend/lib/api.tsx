@@ -9,6 +9,7 @@ export interface Group {
   memberCount: number;
   lastActivity: string;
   owner_id?: number;
+  is_owner?: boolean;
 }
 
 export interface GroupCreate {

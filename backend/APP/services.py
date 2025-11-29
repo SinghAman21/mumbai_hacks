@@ -24,7 +24,7 @@ def get_monthly_financials(group_id):
         group=group,
         created_at__year=now.year,
         created_at__month=now.month,
-        status='APPROVED'
+        status__in=['APPROVED', 'DISPUTED']
     )
 
     val = monthly_expenses.aggregate(Sum('amount'))['amount__sum'] or 0
@@ -37,7 +37,7 @@ def get_monthly_financials(group_id):
             user=user,
             expense__created_at__year=now.year,
             expense__created_at__month=now.month,
-            expense__status='APPROVED'
+            expense__status__in=['APPROVED', 'DISPUTED']
         ).aggregate(Sum('owed_amount'))['owed_amount__sum'] or 0
 
         if member_count == 1:
@@ -215,8 +215,8 @@ def create_expense_from_parsed_data(group_id, parsed_data):
         payer=payer,
         amount=parsed_data['amount'],
         description=parsed_data['description'],
-        category="General",
-        status='APPROVED' if members.count() == 1 else 'PENDING'
+        category=parsed_data['category'],
+        status='APPROVED'
     )
 
     splits_data = parsed_data.get('splits', [])
@@ -239,7 +239,7 @@ def create_expense_from_parsed_data(group_id, parsed_data):
                 expense=expense,
                 user=user,
                 owed_amount=split['amount'],
-                status='ACCEPTED' if user == payer else 'PENDING'
+                status='ACCEPTED'
             )
     
     return expense
