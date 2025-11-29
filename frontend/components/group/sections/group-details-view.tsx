@@ -329,7 +329,7 @@ export function GroupDetailsView({
           >
             <PromptInputTextarea placeholder="Log a new transaction..." />
             <PromptInputActions>
-              <PromptInputAction tooltip="Voice input">
+            {/*  <PromptInputAction tooltip="Voice input">
                 <Button
                   size="sm"
                   variant={isListening ? "default" : "ghost"}
@@ -348,7 +348,7 @@ export function GroupDetailsView({
                     }`}
                   />
                 </Button>
-              </PromptInputAction>
+              </PromptInputAction> */}
               <PromptInputAction tooltip="Scan Receipt">
                 <Button
                   size="sm"
