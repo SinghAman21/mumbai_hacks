@@ -12,6 +12,7 @@ import {
   IconCamera,
   IconX,
   IconTrash,
+  IconLoader2,
 } from "@tabler/icons-react";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -362,7 +363,11 @@ export function GroupDetailsView({
               </PromptInputAction>
               <PromptInputAction tooltip="Send">
                 <Button size="sm" onClick={handleSend} className="rounded-full">
-                  <IconSend className="w-4 h-4" />
+                  {isLoading ? (
+                    <IconLoader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <IconSend className="w-4 h-4" />
+                  )}
                 </Button>
               </PromptInputAction>
             </PromptInputActions>
