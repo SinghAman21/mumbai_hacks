@@ -9,6 +9,7 @@ import {
   IconSend,
   IconSettings,
   IconCamera,
+  IconMicrophone,
   IconX,
   IconTrash,
   IconAlertCircle,
@@ -331,6 +332,26 @@ export function GroupDetailsView({
             onSubmit={handleSend}
             isLoading={isLoading}
           >
+          <PromptInputAction tooltip="Voice input">
+                <Button
+                  size="sm"
+                  variant={isListening ? "default" : "ghost"}
+                  className="rounded-full"
+                  onClick={() =>
+                    startListening((spokenText: any) => {
+                      setPromptValue((prev: any) =>
+                        prev ? prev + " " + spokenText : spokenText
+                      );
+                    })
+                  }
+                >
+                  <IconMicrophone
+                    className={`w-4 h-4 ${
+                      isListening ? "animate-pulse text-red-500" : ""
+                    }`}
+                  />
+                </Button>
+              </PromptInputAction>
             <PromptInputTextarea placeholder="Log a new transaction..." />
             <PromptInputActions>
               <PromptInputAction tooltip="Scan Receipt">
