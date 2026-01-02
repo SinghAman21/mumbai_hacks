@@ -26,10 +26,27 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("SECRET_KEY")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+def _env_bool(name: str, default: bool = False) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "t", "yes", "y", "on"}
 
-ALLOWED_HOSTS = []
+
+def _env_csv(name: str, default: list[str] | None = None) -> list[str]:
+    raw = os.getenv(name)
+    if raw is None:
+        return default or []
+    return [item.strip() for item in raw.split(",") if item.strip()]
+
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = _env_bool("DJANGO_DEBUG", default=True)
+
+ALLOWED_HOSTS = _env_csv(
+    "ALLOWED_HOSTS",
+    default=["localhost", "127.0.0.1"] if DEBUG else [],
+)
 
 
 # Application definition
@@ -57,10 +74,15 @@ MIDDLEWARE = [
     'APP.middleware.ClerkAuthenticationMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://192.168.0.107:3000"
-]
+CORS_ALLOWED_ORIGINS = _env_csv(
+    "CORS_ALLOWED_ORIGINS",
+    default=["http://localhost:3000", "http://127.0.0.1:3000"],
+)
+
+CSRF_TRUSTED_ORIGINS = _env_csv(
+    "CSRF_TRUSTED_ORIGINS",
+    default=[],
+)
 
 ROOT_URLCONF = 'PROJ.urls'
 
@@ -92,19 +114,27 @@ user = os.getenv("USER")
 port = os.getenv("PORT", "5432")
 db_name = os.getenv("DB_NAME", "postgres")
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': db_name,
-        'USER': user,
-        'PASSWORD': pw,
-        'HOST': host,
-        'PORT': port,
-        'OPTIONS': {
-            'sslmode': 'require',
-        },
+if host and user and pw:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': db_name,
+            'USER': user,
+            'PASSWORD': pw,
+            'HOST': host,
+            'PORT': port,
+            'OPTIONS': {
+                'sslmode': 'require',
+            },
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 DATABASE_ROUTERS = ['PROJ.routers.CustomRouter']
 
 
@@ -150,3 +180,12 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CLERK_SECRET_KEY = os.getenv("CLERK_SECRET_KEY")
+
+# Cache backend (Phase 4 safety net)
+# Default is per-process LocMem. Later, swap BACKEND to Redis without changing view code.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+        "LOCATION": "spendsplit-cache",
+    }
+}

@@ -6,8 +6,8 @@
     "dev": "next dev",
     "start": "next start",
     "lint": "eslint",
-    "build": "rm -rf .next && rm -f tsconfig.tsbuildinfo && next build ",
-    "clean": "rm -rf .next && rm -f tsconfig.tsbuildinfo && rm -rf node_modules/.cache",
+    "build": "node -e \"const fs=require('fs'); fs.rmSync('.next',{recursive:true,force:true}); try{fs.rmSync('tsconfig.tsbuildinfo',{force:true});}catch(e){}\" && next build",
+    "clean": "node -e \"const fs=require('fs'); fs.rmSync('.next',{recursive:true,force:true}); fs.rmSync('node_modules/.cache',{recursive:true,force:true}); try{fs.rmSync('tsconfig.tsbuildinfo',{force:true});}catch(e){}\"",
     "build:clean": "npm run clean && npm run build"
   },
   "dependencies": {
@@ -29,6 +29,7 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-tooltip": "^1.2.8",
     "@tabler/icons-react": "^3.35.0",
+    "@tanstack/react-query": "^5.90.16",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

@@ -4,12 +4,39 @@ from django.shortcuts import get_object_or_404
 from .models import Group, Expense, User, GroupMember, GroupLog, ExpenseSplit
 from django.db.models import Sum, Count
 from datetime import datetime
+from functools import wraps
+from django.views.decorators.cache import cache_page
 from django.core.signing import TimestampSigner, SignatureExpired, BadSignature
 from urllib.parse import unquote
 
 signer = TimestampSigner()
 
 api = NinjaAPI()
+
+
+def cache_page_per_user(timeout_seconds: int):
+    """Cache a view response per authenticated user.
+
+    NOTE: Using Django's plain @cache_page on auth-protected endpoints can leak data
+    across users because the default cache key does not vary on Authorization.
+    """
+
+    def decorator(view_func):
+        @wraps(view_func)
+        def _wrapped(request, *args, **kwargs):
+            user = getattr(request, "user", None)
+            if not user or not getattr(user, "is_authenticated", False):
+                return view_func(request, *args, **kwargs)
+
+            # URL already contains group_id for analysis endpoints; prefix isolates users.
+            key_prefix = f"user:{user.pk}"
+            return cache_page(timeout_seconds, key_prefix=key_prefix)(view_func)(
+                request, *args, **kwargs
+            )
+
+        return _wrapped
+
+    return decorator
 
 class UserSchema(Schema):
     name: str
@@ -97,6 +124,7 @@ class GroupUpdateSchema(Schema):
     min_floor: Optional[float] = None
 
 @api.get("/groups", response=List[GroupSchema])
+@cache_page_per_user(60 * 5)
 def list_groups(request):
     # Return groups where the authenticated user is a member
     user = request.user
@@ -348,6 +376,7 @@ def create_expense_ocr(request, group_id: int, file: UploadedFile = File(...), t
 from .services import get_unified_fairness_analysis
 
 @api.get("/groups/{group_id}/analysis")
+@cache_page_per_user(60 * 5)
 def get_group_analysis(request, group_id: int):
     user = request.user
     # Verify user is a member of this group

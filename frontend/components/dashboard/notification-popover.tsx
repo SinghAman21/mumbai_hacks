@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import { Bell, Check, X, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,9 +11,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { fetchGroups, fetchGroupAnalysis } from "@/lib/api";
 import { formatLastActivity } from "@/lib/utils/date";
-import { useAuth } from "@clerk/nextjs";
+import { useGroupsContext } from "@/components/dashboard/groups-provider";
 
 interface Alert {
   id: string;
@@ -26,98 +25,38 @@ interface Alert {
 }
 
 function NotificationPopover() {
-  const { getToken } = useAuth();
+  const { groups, loading } = useGroupsContext();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
 
-  // Fetch alerts from all groups
-  const fetchAlerts = async () => {
-    try {
-      setLoading(true);
-      const token = await getToken();
-      const { data: groups } = await fetchGroups(token);
+  // Popover must never trigger heavy API calls.
+  // Compute lightweight alerts from cached group summary data only.
+  const computedAlerts: Alert[] = useMemo(() => {
+    const now = new Date().toISOString();
+    const nextAlerts: Alert[] = [];
 
-      if (!groups || groups.length === 0) {
-        setAlerts([]);
-        return;
+    (groups || []).forEach((group) => {
+      const pending = Number((group as any).pendingTransactions ?? 0);
+      if (pending > 0) {
+        nextAlerts.push({
+          id: `${group.id}-pending`,
+          message: `${pending} pending transaction${pending === 1 ? "" : "s"}`,
+          groupId: group.id,
+          groupName: group.name,
+          type: "warning",
+          timestamp: now,
+          read: false,
+        });
       }
+    });
 
-      const alertsPromises = groups.map(async (group) => {
-        try {
-          const { data: analysis } = await fetchGroupAnalysis(group.id, token);
+    return nextAlerts;
+  }, [groups]);
 
-          // Extract alerts from analysis response
-          const groupAlerts: Alert[] = [];
-
-          // Only handle alerts array
-          if (analysis?.alerts && Array.isArray(analysis.alerts)) {
-            analysis.alerts.forEach((alert: any, index: number) => {
-              if (alert && alert.message) {
-                groupAlerts.push({
-                  id: `${group.id}-alert-${index}`,
-                  message: alert.message,
-                  groupId: group.id,
-                  groupName: group.name,
-                  type: alert.type || "info",
-                  timestamp: alert.timestamp || new Date().toISOString(),
-                  read: false,
-                });
-              }
-            });
-          }
-
-          return groupAlerts;
-        } catch (error) {
-          console.error(
-            `Failed to fetch analysis for group ${group.id} (${group.name}):`,
-            error
-          );
-          // Return empty array for this group, don't fail the entire operation
-          return [];
-        }
-      });
-
-      const allAlerts = await Promise.all(alertsPromises);
-      const flattenedAlerts = allAlerts.flat();
-
-      // Sort alerts by timestamp (newest first)
-      flattenedAlerts.sort(
-        (a, b) =>
-          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-      );
-
-      console.log(
-        `Fetched ${flattenedAlerts.length} alerts from ${groups.length} groups`
-      );
-      groups.forEach((group, index) => {
-        const groupAlertCount = allAlerts[index].length;
-        if (groupAlertCount > 0) {
-          console.log(
-            `Group "${group.name}" (${group.id}): ${groupAlertCount} alerts`
-          );
-        }
-      });
-
-      setAlerts(flattenedAlerts);
-    } catch (error) {
-      console.error("Failed to fetch alerts:", error);
-      setAlerts([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAlerts();
-  }, []);
-
-  // Refresh alerts when popover opens
-  useEffect(() => {
-    if (isOpen) {
-      fetchAlerts();
-    }
-  }, [isOpen]);
+  // Keep local read/remove UX, but sync the source list when groups change.
+  React.useEffect(() => {
+    setAlerts(computedAlerts);
+  }, [computedAlerts]);
 
   const unreadCount = alerts.filter((alert) => !alert.read).length;
 
@@ -168,7 +107,7 @@ function NotificationPopover() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={fetchAlerts}
+              onClick={() => setAlerts(computedAlerts)}
               disabled={loading}
               className="text-xs h-auto p-1"
             >
@@ -193,7 +132,9 @@ function NotificationPopover() {
           {alerts.length === 0 && !loading ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <Bell className="w-8 h-8 text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">No alerts</p>
+              <p className="text-sm text-muted-foreground">
+                No alerts from cached group data
+              </p>
             </div>
           ) : (
             <div className="divide-y">

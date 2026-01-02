@@ -19,7 +19,9 @@ export interface GroupCreate {
   min_floor?: number;
 }
 
-const API_URL = "http://localhost:8000/api";
+export const API_URL =
+  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ||
+  "http://localhost:8000/api";
 
 // ⛔ DO NOT REDIRECT INSIDE FETCH
 // ⛔ DO NOT USE window.location HERE

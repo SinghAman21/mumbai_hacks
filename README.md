@@ -1,3 +1,43 @@
+# Mumbai Hacks
+
+## Deployment checklist
+
+### Backend (Django)
+
+Set these environment variables on your backend host (Render/Railway/Fly/VM, etc.):
+
+- `SECRET_KEY`
+- `DJANGO_DEBUG` (set to `false` in production)
+- `ALLOWED_HOSTS` (comma-separated, e.g. `api.example.com`)
+- `CORS_ALLOWED_ORIGINS` (comma-separated, e.g. `https://your-frontend.vercel.app`)
+- `CSRF_TRUSTED_ORIGINS` (comma-separated, e.g. `https://your-frontend.vercel.app`)
+- Database:
+	- `HOST`, `PORT`, `USER`, `PASSWORD`, `DB_NAME`
+
+Run command (example):
+
+- `python manage.py migrate`
+
+### Frontend (Next.js)
+
+Set these environment variables on your frontend host (Vercel/Netlify/etc.):
+
+- `NEXT_PUBLIC_API_URL` (example: `https://your-backend-domain.com/api`)
+
+Build/Start:
+
+- `pnpm install`
+- `pnpm build`
+
+Notes:
+
+- Do not commit `.env` files to git.
+## Team Members
+
+- Aman Singh
+- Sumedh Hadkar
+- Tanishq Chavan
+- Pranav Waghmare
 # SpendSplit
 
 This repository contains the source code for the Mumbai Hacks project, featuring a Django backend integrated with Supabase and a Next.js frontend with modern UI components.
@@ -135,7 +175,7 @@ The frontend will be available at `http://localhost:3000`.
 ```
 ## Team Members
 
-- Aman Singh (Lead)
+- Aman Singh
 - Sumedh Hadkar
 - Tanishq Chavan
 - Pranav Waghmare

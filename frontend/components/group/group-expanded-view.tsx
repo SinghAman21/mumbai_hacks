@@ -52,8 +52,12 @@ export function GroupExpandedView({
     <AnimatePresence>
       {active ? (
         <div
-          className="fixed inset-0 grid place-items-center z-50 p-4 md:p-6 bg-black/40 backdrop-blur-sm"
-          onClick={onClose}
+          className="fixed inset-0 grid place-items-center z-100 p-4 md:p-6 bg-black/40 backdrop-blur-sm"
+          onMouseDown={(e) => {
+            // Prevent click-through to underlying elements when closing.
+            e.preventDefault();
+            onClose();
+          }}
         >
           <motion.div
             layoutId={`card-${name}-${id_unique}`}
@@ -62,6 +66,7 @@ export function GroupExpandedView({
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
             className="w-full max-w-6xl h-[90vh] flex flex-col bg-card rounded-3xl overflow-hidden border shadow-xl"
+            onMouseDown={(e) => e.stopPropagation()}
             onClick={(e) => e.stopPropagation()}
           >
             {/* <span>Change the height of the section</span> */}

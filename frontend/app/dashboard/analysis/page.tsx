@@ -12,11 +12,13 @@ import {
 } from "@/components/ui/select";
 import DashHeader from "@/components/dashboard/dash-header";
 import { useAuth } from "@clerk/nextjs";
-import { fetchGroups, fetchGroupExpenses } from "@/lib/api";
+import { fetchGroupExpenses } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useGroupsContext } from "@/components/dashboard/groups-provider";
 
 export default function AnalysisPage() {
   const { getToken } = useAuth();
+  const { groups, loading: groupsLoading, isLoaded } = useGroupsContext();
   const [selectedMonth, setSelectedMonth] = React.useState("november");
   const [expensesData, setExpensesData] = React.useState<any[]>([]);
   const [loading, setLoading] = React.useState(true);
@@ -24,11 +26,11 @@ export default function AnalysisPage() {
   React.useEffect(() => {
     async function loadData() {
       try {
+        if (!isLoaded) return;
         const token = await getToken();
         if (!token) return;
 
-        // Fetch all groups
-        const { data: groups } = await fetchGroups(token);
+        // Use cached groups (single source of truth).
         if (!groups || groups.length === 0) {
           setLoading(false);
           return;
@@ -56,8 +58,10 @@ export default function AnalysisPage() {
       }
     }
 
+    // Wait for group list to load; then fetch expenses.
+    setLoading(true);
     loadData();
-  }, [getToken]);
+  }, [getToken, isLoaded, groups]);
 
   const months = [
     { value: "january", label: "January" },

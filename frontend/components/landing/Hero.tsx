@@ -58,9 +58,6 @@ export function Hero() {
               Get Started
             </button>
           </Link>
-          <button className="px-8 py-3 border-2 border-white text-white rounded-lg font-medium hover:scale-105 transition-transform duration-200">
-            Know More
-          </button>
         </motion.div>
 
         {/* Smooth Gradient Transition */}

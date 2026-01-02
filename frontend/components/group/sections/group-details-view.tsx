@@ -31,7 +31,8 @@ import { formatIndianRupee } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PerUserData } from "../per-user-data";
 import { Badge } from "@/components/ui/badge";
-import { uploadReceipt, deleteExpense } from "@/lib/api";
+import { API_URL, uploadReceipt, deleteExpense } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
 
 interface GroupDetailsViewProps {
   id: string;
@@ -61,80 +62,73 @@ export function GroupDetailsView({
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  React.useEffect(() => {
-    if (!token) return;
+  const expensesInFlightRef = React.useRef(false);
 
-    // Fetch expenses
-    setExpensesLoading(true);
-    fetch(`http://127.0.0.1:8000/api/groups/${id}/expenses`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
+  const analysisQuery = useQuery({
+    queryKey: ["group-analysis", id],
+    enabled: !!token && !!id,
+    queryFn: async () => {
+      const res = await fetch(`${API_URL}/groups/${id}/analysis`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        throw new Error("Failed to fetch group analysis");
+      }
+      return res.json();
+    },
+  });
+
+  React.useEffect(() => {
+    setMembersLoading(analysisQuery.isLoading);
+  }, [analysisQuery.isLoading]);
+
+  React.useEffect(() => {
+    if (analysisQuery.data?.member_details) {
+      setMembers(analysisQuery.data.member_details);
+    }
+  }, [analysisQuery.data]);
+
+  const fetchExpenses = React.useCallback(
+    async ({ showLoading }: { showLoading: boolean }) => {
+      if (!token) return;
+      if (expensesInFlightRef.current) return;
+
+      expensesInFlightRef.current = true;
+      if (showLoading) setExpensesLoading(true);
+      try {
+        const res = await fetch(`${API_URL}/groups/${id}/expenses`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
         if (Array.isArray(data)) {
           setExpenses(data);
         } else {
           console.error("Expected array for expenses, got:", data);
           setExpenses([]);
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error(err);
         setExpenses([]);
-      })
-      .finally(() => setExpensesLoading(false));
+      } finally {
+        expensesInFlightRef.current = false;
+        if (showLoading) setExpensesLoading(false);
+      }
+    },
+    [id, token]
+  );
 
-    // Fetch members analysis
-    setMembersLoading(true);
-    fetch(`http://127.0.0.1:8000/api/groups/${id}/analysis`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.member_details) {
-          console.log("Member details:", data.member_details);
-          console.log("Owner ID:", ownerId);
-          setMembers(data.member_details);
-        }
-      })
-      .catch((err) => console.error(err))
-      .finally(() => setMembersLoading(false));
-  }, [id, token]);
+  React.useEffect(() => {
+    if (!token) return;
+
+    fetchExpenses({ showLoading: true });
+  }, [fetchExpenses, token]);
 
   const refreshDetails = async () => {
     if (!token) return;
     try {
-      // Fetch expenses silently
-      const expensesRes = await fetch(
-        `http://127.0.0.1:8000/api/groups/${id}/expenses`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      if (expensesRes.ok) {
-        const data = await expensesRes.json();
-        if (Array.isArray(data)) {
-          setExpenses(data);
-        }
-      }
-
-      // Fetch members silently
-      const analysisRes = await fetch(
-        `http://127.0.0.1:8000/api/groups/${id}/analysis`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      if (analysisRes.ok) {
-        const data = await analysisRes.json();
-        if (data.member_details) {
-          setMembers(data.member_details);
-        }
-      }
+      await fetchExpenses({ showLoading: false });
+      // Only GroupDetailsView may fetch /analysis, but keep it gated to avoid duplicate calls.
+      await analysisQuery.refetch();
 
       if (refreshData) {
         refreshData();
@@ -157,20 +151,17 @@ export function GroupDetailsView({
           token
         );
       } else {
-        const res = await fetch(
-          `http://127.0.0.1:8000/api/groups/${id}/expenses/ai`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              text_input: promptValue,
-              user_name: "John Doe",
-            }),
-          }
-        );
+        const res = await fetch(`${API_URL}/groups/${id}/expenses/ai`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            text_input: promptValue,
+            user_name: "John Doe",
+          }),
+        });
         if (res.ok) {
           newExpense = await res.json();
         } else {
@@ -193,25 +184,20 @@ export function GroupDetailsView({
     }
   };
 
-
-
   const handleDispute = async (expenseId: number) => {
     if (!token) return;
     const reason = prompt("Please enter a reason for the dispute:");
     if (!reason) return;
 
     try {
-      const res = await fetch(
-        `http://127.0.0.1:8000/api/expenses/${expenseId}/dispute`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ reason }),
-        }
-      );
+      const res = await fetch(`${API_URL}/expenses/${expenseId}/dispute`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ reason }),
+      });
 
       if (res.ok) {
         setExpenses((prev) =>
@@ -296,8 +282,9 @@ export function GroupDetailsView({
                     </div>
                   </div>
                   <span
-                    className={`text-lg font-bold ${member.balance >= 0 ? "text-chart-2" : "text-destructive"
-                      }`}
+                    className={`text-lg font-bold ${
+                      member.balance >= 0 ? "text-chart-2" : "text-destructive"
+                    }`}
                   >
                     {member.balance >= 0 ? "+" : "-"}
                     {formatIndianRupee(Math.abs(member.balance))}
@@ -351,8 +338,9 @@ export function GroupDetailsView({
                 <Button
                   size="sm"
                   variant="ghost"
-                  className={`rounded-full ${selectedFile ? "text-primary bg-primary/10" : ""
-                    }`}
+                  className={`rounded-full ${
+                    selectedFile ? "text-primary bg-primary/10" : ""
+                  }`}
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <IconCamera className="w-4 h-4" />
@@ -460,7 +448,6 @@ export function GroupDetailsView({
                           expense.status !== "REJECTED" &&
                           expense.status !== "DISPUTED" && (
                             <div className="flex gap-2 mt-2">
-
                               <Button
                                 size="sm"
                                 variant="ghost"

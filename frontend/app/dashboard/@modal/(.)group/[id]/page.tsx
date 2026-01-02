@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import React, { useState, useEffect, useCallback } from "react";
+import { useRouter, useParams, usePathname } from "next/navigation";
 import { GroupExpandedView } from "@/components/group/group-expanded-view";
 import { Group } from "@/lib/api";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -12,6 +12,7 @@ import { useGroupsContext } from "@/components/dashboard/groups-provider";
 export default function InterceptedGroupPage() {
   const router = useRouter();
   const params = useParams();
+  const pathname = usePathname();
   const rawId = params?.id;
 
   // 🔒 Safe param parsing
@@ -19,6 +20,22 @@ export default function InterceptedGroupPage() {
 
   const { groups, loading: groupsLoading, refreshGroups } = useGroupsContext();
   const { getToken } = useAuth();
+
+  const [open, setOpen] = useState(true);
+
+  // Next.js can preserve this segment's client state in its cache.
+  // If we closed once (open=false) and later navigate to the same group again,
+  // we must force it open when the URL indicates the group route is active.
+  useEffect(() => {
+    if (pathname?.startsWith("/dashboard/group/")) {
+      setOpen(true);
+    }
+  }, [pathname]);
+
+  const handleClose = useCallback(() => {
+    setOpen(false);
+    router.push("/dashboard");
+  }, [router]);
 
   // STATE
   const [token, setToken] = useState<string | null>(null);
@@ -39,7 +56,12 @@ export default function InterceptedGroupPage() {
 
   if (groupsLoading && !groupFromContext) {
     return (
-      <Dialog open={true} onOpenChange={() => router.push("/dashboard")}>
+      <Dialog
+        open={open}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) handleClose();
+        }}
+      >
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0">
           <DialogTitle className="sr-only">Loading Group</DialogTitle>
           <div className="p-6 space-y-4">
@@ -62,7 +84,12 @@ export default function InterceptedGroupPage() {
 
   if (!groupFromContext && !groupsLoading) {
     return (
-      <Dialog open={true} onOpenChange={() => router.push("/dashboard")}>
+      <Dialog
+        open={open}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) handleClose();
+        }}
+      >
         <DialogContent className="max-w-md">
           <div className="text-center p-6">
             <DialogTitle className="text-xl font-bold mb-2">
@@ -90,10 +117,10 @@ export default function InterceptedGroupPage() {
       memberCount={groupFromContext.memberCount}
       lastActivity={groupFromContext.lastActivity}
       minFloor={groupFromContext.min_floor}
-      active={true}
+      active={open}
       activeTab={activeTab}
       setActiveTab={setActiveTab}
-      onClose={() => router.push("/dashboard")}
+      onClose={handleClose}
       animateInitial={false}
       token={token}
       onExpenseUpdate={() => {}} // Context updates happen via other means or we can trigger refetch

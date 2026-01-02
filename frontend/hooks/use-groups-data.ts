@@ -1,57 +1,55 @@
-import { useEffect, useState } from "react";
+import { useCallback } from "react";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { fetchGroups, Group } from "@/lib/api";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useGroupsData() {
   const { getToken, isLoaded: authLoaded } = useAuth();
   const { user, isLoaded: userLoaded } = useUser();
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const refreshGroups = async () => {
-    if (!authLoaded || !userLoaded) return;
-    try {
+  // ✅ Mandatory guard: do not fetch until auth + user are loaded.
+  const isReady = authLoaded && userLoaded;
+  const userId = user?.id;
+  const queryKey = ["groups", userId] as const;
+
+  const groupsQuery = useQuery({
+    queryKey,
+    enabled: isReady && !!userId,
+    queryFn: async (): Promise<Group[]> => {
       const token = await getToken();
       const { data, error, status } = await fetchGroups(token);
 
-      if (status === 401) {
-        setError("Unauthorized");
-        setGroups([]);
-        return;
-      }
+      if (status === 401) throw new Error("Unauthorized");
+      if (error) throw new Error(error);
+      return data || [];
+    },
+  });
 
-      if (error) {
-        setError(error);
-        setGroups([]);
-        return;
-      }
+  const setGroups = useCallback(
+    (
+      updater: Group[] | ((prev: Group[]) => Group[])
+    ) => {
+      queryClient.setQueryData<Group[]>(queryKey, (old) => {
+        const prev = old || [];
+        return typeof updater === "function"
+          ? (updater as (prev: Group[]) => Group[])(prev)
+          : updater;
+      });
+    },
+    [queryClient, queryKey]
+  );
 
-      setGroups(data || []);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to load groups");
-    }
-  };
-
-  useEffect(() => {
-    if (!authLoaded || !userLoaded) return;
-
-    (async () => {
-      try {
-        setLoading(true);
-        await refreshGroups();
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [getToken, authLoaded, userLoaded]);
+  const refreshGroups = useCallback(async () => {
+    if (!isReady || !userId) return;
+    await queryClient.invalidateQueries({ queryKey });
+  }, [queryClient, isReady, userId, queryKey]);
 
   return {
-    groups,
+    groups: groupsQuery.data || [],
     setGroups,
-    loading,
-    error,
+    loading: groupsQuery.isLoading,
+    error: groupsQuery.error ? (groupsQuery.error as Error).message : null,
     isLoaded: authLoaded && userLoaded,
     user,
     refreshGroups,
