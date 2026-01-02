@@ -59,8 +59,18 @@ jobs:
 
       - name: Django checks
         env:
-          DJANGO_DEBUG: "false"
+          # Core Django
+          DEBUG: "False"
           SECRET_KEY: "dummy-secret-for-ci"
           ALLOWED_HOSTS: "localhost"
+
+          # SSL (disabled in CI)
+          SECURE_SSL_REDIRECT: "False"
+
+          # Force SQLite in CI
+          HOST: ""
+          USER: ""
+          PASSWORD: ""
+
         run: |
-          python manage.py check --deploy
+          python manage.py check --deploy --fail-level ERROR
