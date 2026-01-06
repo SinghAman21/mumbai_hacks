@@ -19,7 +19,7 @@ export const Logo = () => {
           priority
         />
       </div>
-      <span className="font-bold text-lg whitespace-nowrap overflow-hidden">
+      <span className="hidden sm:inline font-bold text-lg whitespace-nowrap overflow-hidden">
         SpendSplit
       </span>
     </Link>

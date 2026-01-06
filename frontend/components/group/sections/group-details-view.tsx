@@ -239,8 +239,8 @@ export function GroupDetailsView({
 
   return (
     <div className="flex-1 overflow-hidden flex flex-col">
-      <div className="flex-1 flex gap-6 p-6 min-h-0">
-        <div className="flex-7 flex flex-col min-h-0">
+      <div className="flex-1 flex flex-col md:flex-row gap-4 md:gap-6 p-4 sm:p-6 min-h-0">
+        <div className="w-full md:flex-7 flex flex-col min-h-0">
           <h4 className="text-lg font-semibold mb-4 text-card-foreground shrink-0">
             Member Expenses
           </h4>
@@ -359,9 +359,10 @@ export function GroupDetailsView({
           </PromptInput>
         </div>
 
-        <Separator orientation="vertical" className="h-auto" />
+        <Separator className="md:hidden" />
+        <Separator orientation="vertical" className="hidden md:block h-auto" />
 
-        <div className="flex-3 flex flex-col min-h-0">
+        <div className="w-full md:flex-3 flex flex-col min-h-0">
           <div className="grid grid-cols-2 gap-2 mb-4 shrink-0">
             <Button
               variant={activeTab === "transactions" ? "default" : "outline"}

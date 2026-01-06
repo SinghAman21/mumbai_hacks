@@ -18,11 +18,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.className} antialiased`}
+        className={`${inter.className} antialiased min-h-dvh w-full overflow-x-hidden`}
       >
         <Providers>{children}</Providers>
       </body>
-
     </html>
   );
 }

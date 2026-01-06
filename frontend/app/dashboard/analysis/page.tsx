@@ -81,7 +81,7 @@ export default function AnalysisPage() {
   return (
     <>
       <DashHeader />
-      <main className="flex-1 overflow-auto p-6">
+      <main className="flex-1 overflow-auto p-4 sm:p-6 pb-24">
         <div className="max-w-6xl mx-auto space-y-6">
           <div className="flex flex-col gap-2">
             <h1 className="text-3xl font-bold tracking-tight">Analysis</h1>
@@ -90,14 +90,14 @@ export default function AnalysisPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
             <label htmlFor="month-select" className="text-sm font-medium">
               Select Month:
             </label>
             <Select value={selectedMonth} onValueChange={setSelectedMonth}>
               <SelectTrigger
                 id="month-select"
-                className="w-[200px]"
+                className="w-full sm:w-[200px]"
                 aria-label="Select a month"
               >
                 <SelectValue placeholder="Select a month" />
