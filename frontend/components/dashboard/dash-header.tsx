@@ -18,11 +18,13 @@ function DashHeader({ onSearch }: DashHeaderProps) {
 
   return (
     <div className="w-full px-4 py-3 sm:px-6 sm:py-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-3 min-w-0">
+      <div className="flex flex-nowrap items-center gap-2 sm:gap-3 min-w-0">
+        <div className="flex items-center gap-3 shrink-0">
           <Logo />
         </div>
-
+        <div className="flex-1 min-w-0">
+          <ActionSearchBar onSearch={onSearch} />
+        </div>
         <div className="ml-auto flex items-center gap-2 shrink-0">
           <NotificationPopover />
           <ModeToggle />
@@ -34,10 +36,6 @@ function DashHeader({ onSearch }: DashHeaderProps) {
               },
             }}
           />
-        </div>
-
-        <div className="w-full sm:flex-1 min-w-0">
-          <ActionSearchBar onSearch={onSearch} />
         </div>
       </div>
     </div>

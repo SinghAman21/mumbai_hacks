@@ -109,7 +109,7 @@ export function ChartAreaInteractive({ expenses }: ChartAreaInteractiveProps) {
         <div className="grid flex-1 gap-1">
           <CardTitle>Area Chart</CardTitle>
           <CardDescription>
-            Showing data for selected time range
+            Showing data for the {timeRange === "7d" ? "last 7 days" : "last 30 days"}
           </CardDescription>
         </div>
 
@@ -130,86 +130,95 @@ export function ChartAreaInteractive({ expenses }: ChartAreaInteractiveProps) {
       </CardHeader>
 
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
-        <ChartContainer
-          config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
-        >
-          <AreaChart data={filteredData}>
-            <defs>
-              <linearGradient id="fillreceived" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-received)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-received)"
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
+        {filteredData.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-[250px] text-center">
+            <p className="text-sm font-medium mb-1">Data not available</p>
+            <p className="text-xs text-muted-foreground">
+              No approved expenses found for this time range
+            </p>
+          </div>
+        ) : (
+          <ChartContainer
+            config={chartConfig}
+            className="aspect-auto h-[250px] w-full"
+          >
+            <AreaChart data={filteredData}>
+              <defs>
+                <linearGradient id="fillreceived" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="5%"
+                    stopColor="var(--color-received)"
+                    stopOpacity={0.8}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--color-received)"
+                    stopOpacity={0.1}
+                  />
+                </linearGradient>
 
-              <linearGradient id="fillspend" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-spend)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-spend)"
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
-            </defs>
+                <linearGradient id="fillspend" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="5%"
+                    stopColor="var(--color-spend)"
+                    stopOpacity={0.8}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--color-spend)"
+                    stopOpacity={0.1}
+                  />
+                </linearGradient>
+              </defs>
 
-            <CartesianGrid vertical={false} />
+              <CartesianGrid vertical={false} />
 
-            <XAxis
-              dataKey="date"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              minTickGap={32}
-              tickFormatter={(value) =>
-                new Date(value).toLocaleDateString("en-US", {
-                  month: "short",
-                  day: "numeric",
-                })
-              }
-            />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                minTickGap={32}
+                tickFormatter={(value) =>
+                  new Date(value).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                  })
+                }
+              />
 
-            <ChartTooltip
-              cursor={false}
-              content={
-                <ChartTooltipContent
-                  labelFormatter={(value) =>
-                    new Date(value).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })
-                  }
-                  indicator="dot"
-                />
-              }
-            />
+              <ChartTooltip
+                cursor={false}
+                content={
+                  <ChartTooltipContent
+                    labelFormatter={(value) =>
+                      new Date(value).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })
+                    }
+                    indicator="dot"
+                  />
+                }
+              />
 
-            <Area
-              dataKey="spend"
-              type="natural"
-              fill="url(#fillspend)"
-              stroke="var(--color-spend)"
-            />
-            <Area
-              dataKey="received"
-              type="natural"
-              fill="url(#fillreceived)"
-              stroke="var(--color-received)"
-            />
+              <Area
+                dataKey="spend"
+                type="natural"
+                fill="url(#fillspend)"
+                stroke="var(--color-spend)"
+              />
+              <Area
+                dataKey="received"
+                type="natural"
+                fill="url(#fillreceived)"
+                stroke="var(--color-received)"
+              />
 
-            <ChartLegend content={<ChartLegendContent />} />
-          </AreaChart>
-        </ChartContainer>
+              <ChartLegend content={<ChartLegendContent />} />
+            </AreaChart>
+          </ChartContainer>
+        )}
       </CardContent>
     </Card>
   );

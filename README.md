@@ -11,6 +11,7 @@ Set these environment variables on your backend host (Render/Railway/Fly/VM, etc
 - `ALLOWED_HOSTS` (comma-separated, e.g. `api.example.com`)
 - `CORS_ALLOWED_ORIGINS` (comma-separated, e.g. `https://your-frontend.vercel.app`)
 - `CSRF_TRUSTED_ORIGINS` (comma-separated, e.g. `https://your-frontend.vercel.app`)
+- `FRONTEND_BASE_URL` (e.g. `https://your-frontend.vercel.app`) — used to generate invite links
 - Database:
 	- `HOST`, `PORT`, `USER`, `PASSWORD`, `DB_NAME`
 

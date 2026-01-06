@@ -27,7 +27,6 @@ interface Alert {
 function NotificationPopover() {
   const { groups, loading } = useGroupsContext();
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
 
   // Popover must never trigger heavy API calls.
   // Compute lightweight alerts from cached group summary data only.
@@ -86,21 +85,23 @@ function NotificationPopover() {
   };
 
   return (
-    <Popover open={isOpen} onOpenChange={setIsOpen}>
+    <Popover>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative rounded-full">
+        <button className="relative inline-flex items-center justify-center rounded-full h-10 w-10 hover:bg-accent hover:text-accent-foreground transition-colors">
           <Bell className="w-5 h-5" />
           {unreadCount > 0 && (
-            <Badge
-              variant="destructive"
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
-            >
+            <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs rounded-full bg-destructive text-destructive-foreground font-medium">
               {unreadCount}
-            </Badge>
+            </span>
           )}
-        </Button>
+        </button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-0" align="end">
+      <PopoverContent 
+        className="w-[95vw] sm:w-80 p-0" 
+        align="center" 
+        alignOffset={0}
+        sideOffset={8}
+      >
         <div className="flex items-center justify-between p-4 border-b">
           <h4 className="font-semibold">Alerts</h4>
           <div className="flex items-center gap-2">
@@ -128,12 +129,13 @@ function NotificationPopover() {
           </div>
         </div>
 
-        <ScrollArea className="h-80">
+        <ScrollArea className="h-60 sm:h-80">
           {alerts.length === 0 && !loading ? (
-            <div className="flex flex-col items-center justify-center py-8 text-center">
-              <Bell className="w-8 h-8 text-muted-foreground mb-2" />
-              <p className="text-sm text-muted-foreground">
-                No alerts from cached group data
+            <div className="flex flex-col items-center justify-center py-8 text-center px-4">
+              <Bell className="w-12 h-12 text-muted-foreground mb-3" />
+              <p className="text-sm font-medium mb-1">No new notifications</p>
+              <p className="text-xs text-muted-foreground">
+                You're all caught up!
               </p>
             </div>
           ) : (
@@ -201,3 +203,4 @@ function NotificationPopover() {
 }
 
 export default NotificationPopover;
+

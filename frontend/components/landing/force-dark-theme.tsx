@@ -4,31 +4,17 @@ import * as React from "react";
 import { useTheme } from "next-themes";
 
 /**
- * Forces dark theme while mounted.
- * Restores the previous theme setting on unmount.
+ * Forces dark theme while mounted on the landing page.
+ * Does not restore theme on unmount to prevent navigation flash.
  */
 export function ForceDarkTheme() {
-  const { theme, resolvedTheme, setTheme } = useTheme();
-  const previousThemeRef = React.useRef<string | null>(null);
+  const { resolvedTheme, setTheme } = useTheme();
 
   React.useEffect(() => {
-    if (previousThemeRef.current === null && theme) {
-      previousThemeRef.current = theme;
-    }
-
     if (resolvedTheme !== "dark") {
       setTheme("dark");
     }
-  }, [theme, resolvedTheme, setTheme]);
-
-  React.useEffect(() => {
-    return () => {
-      const previousTheme = previousThemeRef.current;
-      if (previousTheme && previousTheme !== "dark") {
-        setTheme(previousTheme);
-      }
-    };
-  }, [setTheme]);
+  }, [resolvedTheme, setTheme]);
 
   return null;
 }

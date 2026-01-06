@@ -36,7 +36,7 @@ export function SettingsSidebar({
   ];
 
   return (
-    <aside className="w-64 bg-muted/30 border-r flex flex-col p-4 shrink-0">
+    <aside className="w-64 h-full bg-background md:bg-muted/30 border-r flex flex-col p-4 shrink-0 shadow-xl md:shadow-none">
       <div className="mb-6 px-2">
         <h3 className="font-semibold text-2xl">Settings</h3>
         <p className="text-s text-muted-foreground">Manage group preferences</p>

@@ -49,7 +49,9 @@ export function useGroupsData() {
   return {
     groups: groupsQuery.data || [],
     setGroups,
-    loading: groupsQuery.isLoading,
+    // Use isPending instead of isLoading - shows loading only when there's no cached data
+    // This allows cached data to display immediately while refetch happens in background
+    loading: groupsQuery.isPending,
     error: groupsQuery.error ? (groupsQuery.error as Error).message : null,
     isLoaded: authLoaded && userLoaded,
     user,
