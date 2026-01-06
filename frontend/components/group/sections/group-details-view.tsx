@@ -13,6 +13,7 @@ import {
   IconTrash,
   IconAlertCircle,
   IconLoader2,
+  IconMenu2,
 } from "@tabler/icons-react";
 import {
   Tooltip,
@@ -27,6 +28,16 @@ import {
   PromptInputActions,
   PromptInputAction,
 } from "@/components/ui/prompt-input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { formatIndianRupee } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PerUserData } from "../per-user-data";
@@ -61,6 +72,10 @@ export function GroupDetailsView({
   const [expensesLoading, setExpensesLoading] = React.useState(true);
   const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [isDisputeDialogOpen, setIsDisputeDialogOpen] = React.useState(false);
+  const [disputeReason, setDisputeReason] = React.useState("");
+  const [disputingExpenseId, setDisputingExpenseId] = React.useState<number | null>(null);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = React.useState(false);
 
   const expensesInFlightRef = React.useRef(false);
 
@@ -184,29 +199,33 @@ export function GroupDetailsView({
     }
   };
 
-  const handleDispute = async (expenseId: number) => {
-    if (!token) return;
-    const reason = prompt("Please enter a reason for the dispute:");
-    if (!reason) return;
+  const openDisputeDialog = (expenseId: number) => {
+    setDisputingExpenseId(expenseId);
+    setDisputeReason("");
+    setIsDisputeDialogOpen(true);
+  };
+
+  const handleDisputeSubmit = async () => {
+    if (!token || !disputingExpenseId || !disputeReason.trim()) return;
 
     try {
-      const res = await fetch(`${API_URL}/expenses/${expenseId}/dispute`, {
+      const res = await fetch(`${API_URL}/expenses/${disputingExpenseId}/dispute`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ reason }),
+        body: JSON.stringify({ reason: disputeReason }),
       });
 
       if (res.ok) {
         setExpenses((prev) =>
           prev.map((ex) => {
-            if (ex.id === expenseId) {
+            if (ex.id === disputingExpenseId) {
               return {
                 ...ex,
                 status: "DISPUTED",
-                dispute_reason: reason,
+                dispute_reason: disputeReason,
                 user_approval_status: "DISPUTED",
               };
             }
@@ -216,6 +235,9 @@ export function GroupDetailsView({
         if (onExpenseUpdate) {
           onExpenseUpdate();
         }
+        setIsDisputeDialogOpen(false);
+        setDisputingExpenseId(null);
+        setDisputeReason("");
       } else {
         console.error("Failed to dispute");
       }
@@ -238,9 +260,27 @@ export function GroupDetailsView({
   const [selectedUser, setSelectedUser] = React.useState<string | null>(null);
 
   return (
-    <div className="flex-1 overflow-hidden flex flex-col">
-      <div className="flex-1 flex gap-6 p-6 min-h-0">
-        <div className="flex-7 flex flex-col min-h-0">
+    <div className="flex-1 overflow-hidden flex flex-col relative">
+      {/* Mobile Menu Button for Transactions/Members Sidebar */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="md:hidden fixed bottom-4 right-4 z-50 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full shadow-lg h-12 w-12"
+        onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+      >
+        <IconMenu2 className="w-5 h-5" />
+      </Button>
+
+      {/* Mobile Backdrop Overlay */}
+      {isMobileSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setIsMobileSidebarOpen(false)}
+        />
+      )}
+
+      <div className="flex-1 flex flex-col md:flex-row gap-4 md:gap-6 p-4 sm:p-6 min-h-0">
+        <div className="flex-1 md:flex-7 flex flex-col min-h-0">
           <h4 className="text-lg font-semibold mb-4 text-card-foreground shrink-0">
             Member Expenses
           </h4>
@@ -359,9 +399,22 @@ export function GroupDetailsView({
           </PromptInput>
         </div>
 
-        <Separator orientation="vertical" className="h-auto" />
+        <Separator className="hidden md:block md:hidden" />
+        <Separator orientation="vertical" className="hidden md:block h-auto" />
 
-        <div className="flex-3 flex flex-col min-h-0">
+        {/* Transactions/Members Sidebar - Drawer on mobile, fixed on desktop */}
+        <div
+          className={`
+            fixed md:relative inset-y-0 right-0 z-50 md:z-auto
+            w-80 md:w-full md:flex-3
+            transform transition-transform duration-300 ease-in-out
+            bg-background md:bg-transparent
+            shadow-xl md:shadow-none
+            flex flex-col min-h-0
+            p-4 md:p-0
+            ${isMobileSidebarOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
+          `}
+        >
           <div className="grid grid-cols-2 gap-2 mb-4 shrink-0">
             <Button
               variant={activeTab === "transactions" ? "default" : "outline"}
@@ -452,7 +505,7 @@ export function GroupDetailsView({
                                 size="sm"
                                 variant="ghost"
                                 className="h-6 text-xs text-muted-foreground hover:text-orange-500 px-0"
-                                onClick={() => handleDispute(expense.id)}
+                                onClick={() => openDisputeDialog(expense.id)}
                               >
                                 Dispute
                               </Button>
@@ -523,6 +576,50 @@ export function GroupDetailsView({
           </Button>
         </div>
       </div>
+
+      {/* Dispute Dialog */}
+      <Dialog open={isDisputeDialogOpen} onOpenChange={setIsDisputeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Dispute Transaction</DialogTitle>
+            <DialogDescription>
+              Please provide a reason for disputing this transaction. This will be shared with other group members.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="dispute-reason">Reason for dispute</Label>
+              <Textarea
+                id="dispute-reason"
+                placeholder="e.g., I wasn't present for this expense, incorrect amount, etc."
+                value={disputeReason}
+                onChange={(e) => setDisputeReason(e.target.value)}
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDisputeDialogOpen(false);
+                setDisputeReason("");
+                setDisputingExpenseId(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleDisputeSubmit}
+              disabled={!disputeReason.trim()}
+              variant="destructive"
+            >
+              Submit Dispute
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {selectedUser && (
         <PerUserData
           isOpen={!!selectedUser}

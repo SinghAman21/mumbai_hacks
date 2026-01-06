@@ -17,11 +17,11 @@ export function GroupsHeader({
   onCreateClick,
 }: GroupsHeaderProps) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">
         Groups
       </h2>
-      <div className="flex items-center gap-4">
+      <div className="flex items-center justify-between gap-4 sm:justify-end">
         <div className="text-sm text-neutral-600 dark:text-neutral-400">
           {loading ? <Skeleton className="h-4 w-16" /> : `${groupCount} groups`}
         </div>

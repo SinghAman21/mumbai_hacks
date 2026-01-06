@@ -86,7 +86,20 @@ export function GeneralSettings({
             id="minFloor"
             type="number"
             value={minFloor}
-            onChange={(e) => setMinFloor(parseInt(e.target.value) || 2000)}
+            onChange={(e) => {
+              const val = e.target.value;
+              setMinFloor(val === '' ? 0 : parseInt(val) || 0);
+            }}
+            onFocus={(e) => {
+              if (minFloor === 0) {
+                setMinFloor('' as any);
+              }
+            }}
+            onBlur={(e) => {
+              if (e.target.value === '') {
+                setMinFloor(0);
+              }
+            }}
             placeholder="2000"
             min="0"
           />
@@ -148,14 +161,14 @@ export function InviteSettings({ id }: InviteSettingsProps) {
       </div>
 
       <div className="p-4 border rounded-lg space-y-4">
-        <div className="flex items-center justify-between">
+        <div className="space-y-3">
           <div className="space-y-1">
             <h4 className="text-sm font-medium">Temporary Invite Link</h4>
             <p className="text-xs text-muted-foreground">
               Expires in 10 minutes. Anyone with the link can join.
             </p>
           </div>
-          <Button onClick={handleGenerateLink} disabled={loading}>
+          <Button onClick={handleGenerateLink} disabled={loading} className="w-full sm:w-auto">
             {loading ? (
               <IconLoader2 className="w-4 h-4 animate-spin" />
             ) : (

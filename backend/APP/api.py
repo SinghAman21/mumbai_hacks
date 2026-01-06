@@ -8,6 +8,7 @@ from functools import wraps
 from django.views.decorators.cache import cache_page
 from django.core.signing import TimestampSigner, SignatureExpired, BadSignature
 from urllib.parse import unquote
+import os
 
 signer = TimestampSigner()
 
@@ -187,11 +188,31 @@ def generate_invite(request, group_id: int):
     
     # Sign the Group ID
     signed_token = signer.sign(group_id)
+
+    # Build the invite URL for the *current* frontend.
+    # Priority:
+    # 1) Use FRONTEND_BASE_URL env var (recommended for deployed backend)
+    # 2) Use request Origin if it is in CORS_ALLOWED_ORIGINS
+    # 3) Fall back to localhost for local development
     
-    # Return the full URL for the frontend
-    # Assuming frontend runs on localhost:3000 - ideally this should be from settings
-    invite_url = f"http://localhost:3000/join/{signed_token}"
-    
+    # First, try FRONTEND_BASE_URL
+    frontend_base_url = os.getenv("FRONTEND_BASE_URL")
+
+    # If not set, try Origin header
+    if not frontend_base_url:
+        origin = request.headers.get("origin")
+        allowed_origins_raw = os.getenv("CORS_ALLOWED_ORIGINS", "")
+        allowed_origins = {o.strip() for o in allowed_origins_raw.split(",") if o.strip()}
+        
+        if origin and (not allowed_origins or origin in allowed_origins):
+            frontend_base_url = origin
+
+    # Final fallback to localhost
+    if not frontend_base_url:
+        frontend_base_url = "http://localhost:3000"
+
+    invite_url = f"{frontend_base_url.rstrip('/')}/join/{signed_token}"
+
     return {"invite_url": invite_url}
 
 class JoinGroupSchema(Schema):

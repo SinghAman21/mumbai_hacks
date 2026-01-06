@@ -1,181 +1,192 @@
-# Mumbai Hacks
+# SpendSplitAI 💰
 
-## Deployment checklist
+> AI-powered expense tracking and group financial management platform
 
-### Backend (Django)
+SpendSplitAI is a modern web application designed to simplify expense tracking and group financial management. Built with AI capabilities, it helps users track expenses, split bills fairly among group members, and maintain financial transparency in shared living or collaborative environments.
 
-Set these environment variables on your backend host (Render/Railway/Fly/VM, etc.):
+## ✨ Key Features
 
-- `SECRET_KEY`
-- `DJANGO_DEBUG` (set to `false` in production)
-- `ALLOWED_HOSTS` (comma-separated, e.g. `api.example.com`)
-- `CORS_ALLOWED_ORIGINS` (comma-separated, e.g. `https://your-frontend.vercel.app`)
-- `CSRF_TRUSTED_ORIGINS` (comma-separated, e.g. `https://your-frontend.vercel.app`)
-- Database:
-	- `HOST`, `PORT`, `USER`, `PASSWORD`, `DB_NAME`
+### 🤖 AI-Powered Expense Processing
+- **Smart Receipt Scanning**: Upload receipt images and let AI extract expense details automatically
+- **Natural Language Input**: Add expenses using conversational text (e.g., "Dinner at restaurant $45 split 3 ways")
+- **Intelligent Categorization**: Automatic expense categorization based on description
 
-Run command (example):
+### 👥 Group Management
+- **Create & Join Groups**: Organize expenses by teams, trips, roommates, or events
+- **Invite System**: Temporary invite links with 10-minute expiry for secure group joining
+- **Member Roles**: Owner and member permissions for group administration
+- **Activity Logs**: Track all group actions and changes
 
-- `python manage.py migrate`
+### 💸 Expense Tracking
+- **Transaction Management**: Record, approve, dispute, or reject expenses
+- **Fairness Calculations**: Analyze spending patterns and ensure equitable contributions
+- **Customizable Thresholds**: Set minimum limits to ignore small expenses in fairness calculations
+- **Real-time Updates**: See expense updates as they happen
 
-### Frontend (Next.js)
+### 📊 Analytics & Insights
+- **Spending Charts**: Visualize expense trends over time
+- **Per-User Analytics**: View individual member spending and contributions
+- **Balance Tracking**: Monitor who owes what to whom
+- **Time-based Reports**: Filter by last 7 days or 30 days
 
-Set these environment variables on your frontend host (Vercel/Netlify/etc.):
+### 🎨 Modern UI/UX
+- **Responsive Design**: Optimized for mobile, tablet, and desktop
+- **Dark Mode Support**: User can toggle between light and dark themes
+- **Mobile Drawer Navigation**: Touch-friendly interface for settings and details
+- **Real-time Notifications**: In-app alerts for pending transactions and group activities
 
-- `NEXT_PUBLIC_API_URL` (example: `https://your-backend-domain.com/api`)
-
-Build/Start:
-
-- `pnpm install`
-- `pnpm build`
-
-Notes:
-
-- Do not commit `.env` files to git.
-## Team Members
-
-- Aman Singh
-- Sumedh Hadkar
-- Tanishq Chavan
-- Pranav Waghmare
-# SpendSplit
-
-This repository contains the source code for the Mumbai Hacks project, featuring a Django backend integrated with Supabase and a Next.js frontend with modern UI components.
-
-## 🚀 Tech Stack
+## 🛠️ Tech Stack
 
 ### Backend
-- **Framework:** Django (with Django Ninja)
-- **Database:** PostgreSQL (via Supabase)
-- **Authentication:** Clerk (clerk-backend-api)
-- **AI Integration:** Google Generative AI
-- **Other Tools:** `python-dotenv`, `psycopg2-binary`, `Pillow`
+- **Django** - Web framework with Django Ninja for API endpoints
+- **PostgreSQL** - Relational database (Supabase)
+- **Google Generative AI** - AI-powered expense parsing from text and images
+- **Clerk** - Authentication and user management
+- **Python 3.10+** - Core language
 
 ### Frontend
-- **Framework:** Next.js 16 (App Router)
-- **Language:** TypeScript
-- **Styling:** Tailwind CSS v4, Tailwind Merge, CLSX
-- **Components:** Radix UI (Primitives), Lucide React (Icons), Shadcn UI (Components)
-- **Authentication:** Clerk (@clerk/nextjs)
-- **Charts:** Recharts
-- **Animations:** Framer Motion
-- **State/Data:** React 19
+- **Next.js 15** - React framework with App Router
+- **TypeScript** - Type-safe development
+- **TanStack Query** - Server state management with caching
+- **Tailwind CSS v4** - Utility-first styling
+- **Shadcn UI** - High-quality accessible components
+- **Framer Motion** - Smooth animations
+- **Recharts** - Interactive data visualization
 
-## 📋 Prerequisites
+## 🚀 Getting Started
 
-Ensure you have the following installed:
-- **Node.js** (v18+ recommended)
-- **Python** (v3.10+ recommended)
-- **npm** or **pnpm**
-- **PostgreSQL** (Local instance for development, if needed)
+### Prerequisites
+- Node.js 18+ and pnpm
+- Python 3.10+
+- PostgreSQL database (or Supabase account)
+- Clerk account for authentication
+- Google Generative AI API key
 
-## 🛠️ Installation & Setup
+### Backend Setup
 
-### 1. Backend Setup
-
-Navigate to the `backend` directory:
-
+1. Navigate to backend directory:
 ```bash
 cd backend
 ```
 
-Create a virtual environment (optional but recommended):
-
+2. Create and activate virtual environment:
 ```bash
 python -m venv venv
-# Windows
-venv\Scripts\activate
-# macOS/Linux
-source venv/bin/activate
+source venv/bin/activate  # macOS/Linux
+# or
+venv\Scripts\activate  # Windows
 ```
 
-Install dependencies:
-
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-**Environment Variables:**
-Create a `.env` file in the `backend` directory and add the following (based on `settings.py`):
-
+4. Create `.env` file with required variables:
 ```env
-SUPABASE_PASSWORD=your_supabase_password
-SUPABASE_HOST=your_supabase_host
-SUPABASE_USERNAME=your_supabase_username
-# Add other keys as required by your project (e.g., CLERK_SECRET_KEY, GOOGLE_API_KEY)
+SECRET_KEY=your_django_secret_key
+DJANGO_DEBUG=true
+ALLOWED_HOSTS=localhost,127.0.0.1
+CORS_ALLOWED_ORIGINS=http://localhost:3000
+FRONTEND_BASE_URL=http://localhost:3000
+
+# Database (Supabase)
+HOST=your_supabase_host
+PORT=5432
+USER=postgres
+PASSWORD=your_password
+DB_NAME=postgres
+
+# Authentication
+CLERK_SECRET_KEY=your_clerk_secret_key
+
+# AI
+GOOGLE_API_KEY=your_google_ai_key
 ```
 
-Run Migrations:
-
+5. Run migrations:
 ```bash
-# Migrate remote Supabase DB
 python manage.py migrate
 ```
 
-Start the Backend Server:
-
+6. Start development server:
 ```bash
 python manage.py runserver
 ```
 
-The backend will be available at `http://127.0.0.1:8000`.
+Backend runs at `http://localhost:8000`
 
-### 2. Frontend Setup
+### Frontend Setup
 
-Navigate to the `frontend` directory:
-
+1. Navigate to frontend directory:
 ```bash
 cd frontend
 ```
 
-Install dependencies:
-
+2. Install dependencies:
 ```bash
-npm install
-# or
 pnpm install
 ```
 
-**Environment Variables:**
-Create a `.env.local` file in the `frontend` directory. You will likely need Clerk API keys:
-
+3. Create `.env.local` file:
 ```env
+NEXT_PUBLIC_API_URL=http://localhost:8000/api
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
 CLERK_SECRET_KEY=your_clerk_secret_key
-# Add other public/private keys as needed
 ```
 
-Start the Frontend Development Server:
-
+4. Start development server:
 ```bash
-npm run dev
-# or
 pnpm dev
 ```
 
-The frontend will be available at `http://localhost:3000`.
+Frontend runs at `http://localhost:3000`
 
-## 📂 Project Structure
+## 📱 Usage
 
-```
-├── backend/                # Django Backend
-│   ├── APP/                # Main Application Logic
-│   ├── PROJ/               # Project Settings & Configuration
-│   ├── manage.py           # Django Management Script
-│   └── requirements.txt    # Python Dependencies
-│
-├── frontend/               # Next.js Frontend
-│   ├── app/                # App Router Pages & Layouts
-│   ├── components/         # Reusable UI Components
-│   ├── lib/                # Utility Functions
-│   ├── public/             # Static Assets
-│   └── package.json        # Node.js Dependencies
-│
-└── README.md               # Project Documentation (This file)
-```
-## Team Members
+1. **Sign Up/Login** - Create account or sign in with Clerk authentication
+2. **Create Group** - Start a new group for your team, trip, or shared expenses
+3. **Add Expenses** - Use AI to scan receipts, type descriptions, or upload images
+4. **Track Spending** - View analytics, approve transactions, and monitor balances
+5. **Manage Settings** - Customize group preferences and fairness thresholds
 
-- Aman Singh
-- Sumedh Hadkar
-- Tanishq Chavan
-- Pranav Waghmare
+## 🔐 Security Features
+
+- Secure authentication via Clerk
+- JWT-based API authorization
+- CORS protection
+- CSRF protection
+- Environment variable isolation
+- Temporary invite links with expiration
+
+## 📦 Deployment
+
+### Backend (Django)
+Recommended platforms: Render, Railway, Fly.io
+
+Required environment variables:
+- All variables from local `.env`
+- Set `DJANGO_DEBUG=false`
+- Update `ALLOWED_HOSTS` and `CORS_ALLOWED_ORIGINS` with production URLs
+
+### Frontend (Next.js)
+Recommended platforms: Vercel, Netlify
+
+Required environment variables:
+- `NEXT_PUBLIC_API_URL` - Production backend URL
+- Clerk keys for authentication
+
+## 👥 Team
+
+- **Tanishq Chavan** - Full Stack Developer
+- **Aman Singh** - Developer
+- **Sumedh Hadkar** - Developer
+- **Pranav Waghmare** - Developer
+
+## 📄 License
+
+This project is developed for Mumbai Hacks hackathon.
+
+---
+
+Built with ❤️ by the SpendSplitAI Team

@@ -151,7 +151,7 @@ function DashboardContent() {
         </div>
       )}
       <DashHeader onSearch={setSearchQuery} />
-      <main className="flex-1 overflow-auto p-6">
+      <main className="flex-1 overflow-auto p-4 sm:p-6 pb-24">
         {groups.length === 0 && !loading ? (
           <div className="flex items-center justify-center h-full">
             <EmptyGroupsState onCreate={handleCreateGroupFromEmptyState} />

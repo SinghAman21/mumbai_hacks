@@ -11,6 +11,8 @@ import {
 } from "./sections/settings-tabs";
 import { DangerZone } from "./sections/danger-zone";
 import { ConfirmationDialog } from "./sections/confirmation-dialog";
+import { Button } from "@/components/ui/button";
+import { IconMenu2 } from "@tabler/icons-react";
 
 import { deleteGroup, leaveGroup } from "@/lib/api";
 import { getClerkJwt } from "@/lib/clerk-jwt";
@@ -43,6 +45,7 @@ export function GroupSettings({
   const [confirmAction, setConfirmAction] = useState<"leave" | "delete" | null>(
     null
   );
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const handleConfirmAction = async () => {
     if (!confirmAction || !id) return;
@@ -113,11 +116,50 @@ export function GroupSettings({
     }
   };
 
-  return (
-    <div className="flex h-full overflow-hidden">
-      <SettingsSidebar activeTab={activeTab} onTabChange={setActiveTab} />
+  const handleTabChange = (tab: SettingsTab) => {
+    setActiveTab(tab);
+    setIsMobileSidebarOpen(false); // Close mobile sidebar on tab change
+  };
 
-      <main className="flex-1 overflow-y-auto p-8">
+  return (
+    <div className="flex h-full overflow-hidden relative">
+      {/* Mobile Menu Button - Only visible on small screens */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="md:hidden fixed bottom-4 left-4 z-50 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full shadow-lg h-12 w-12"
+        onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
+      >
+        <IconMenu2 className="w-5 h-5" />
+      </Button>
+
+      {/* Mobile Backdrop Overlay */}
+      <AnimatePresence>
+        {isMobileSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            onClick={() => setIsMobileSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Settings Sidebar - Drawer on mobile, fixed on desktop */}
+      <div
+        className={`
+          fixed md:relative inset-y-0 left-0 z-50 md:z-auto
+          transform transition-transform duration-300 ease-in-out
+          ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}
+      >
+        <SettingsSidebar activeTab={activeTab} onTabChange={handleTabChange} />
+      </div>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto p-4 md:p-8 w-full">
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -125,7 +167,7 @@ export function GroupSettings({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="max-w-2xl mx-auto space-y-8"
+            className="max-w-2xl mx-auto space-y-8 pt-12 md:pt-0"
           >
             {renderTabContent()}
           </motion.div>

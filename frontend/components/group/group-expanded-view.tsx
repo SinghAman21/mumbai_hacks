@@ -72,14 +72,14 @@ export function GroupExpandedView({
             {/* <span>Change the height of the section</span> */}
             <motion.div
               layoutId={`image-${name}-${id_unique}`}
-              className="relative w-full h-29 rounded-t-3xl bg-primary flex items-center justify-between px-6 shrink-0"
+              className="relative w-full h-29 rounded-t-3xl bg-primary flex items-center justify-between px-4 sm:px-6 shrink-0"
             >
               <div className="flex items-center gap-4">
-                <IconUsers className="w-16 h-16 text-primary-foreground" />
+                <IconUsers className="w-10 h-10 sm:w-16 sm:h-16 text-primary-foreground" />
                 <div className="flex flex-col">
                   <motion.h3
                     layoutId={`title-${name}-${id_unique}`}
-                    className="font-bold text-primary-foreground text-3xl"
+                    className="font-bold text-primary-foreground text-xl sm:text-3xl"
                   >
                     {name}
                   </motion.h3>

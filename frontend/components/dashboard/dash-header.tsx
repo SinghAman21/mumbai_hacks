@@ -17,14 +17,15 @@ function DashHeader({ onSearch }: DashHeaderProps) {
   const { resolvedTheme } = useTheme();
 
   return (
-    <div className="flex flex-col w-full h-15 px-6 py-4">
-      <div className="flex items-center justify-between w-full">
-        <div className="flex items-center gap-4 flex-1 mr-4">
+    <div className="w-full px-4 py-3 sm:px-6 sm:py-4">
+      <div className="flex flex-nowrap items-center gap-2 sm:gap-3 min-w-0">
+        <div className="flex items-center gap-3 shrink-0">
           <Logo />
+        </div>
+        <div className="flex-1 min-w-0">
           <ActionSearchBar onSearch={onSearch} />
         </div>
-
-        <div className="flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-2 shrink-0">
           <NotificationPopover />
           <ModeToggle />
           <UserButton
